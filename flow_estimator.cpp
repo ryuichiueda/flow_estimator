@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdint>
+#include <climits>
 
 using namespace std;
 
@@ -64,12 +65,22 @@ public:
 
 void sampling(Image *image, int num, vector<int> *sample)
 {
+	if (num <= 0) {
+		cerr << "Invalid sample num" << endl;
+		exit(1);
+	}
+
 	uint64_t sum = image->sum();
-	cerr << sum << endl;
+	double step = (double)sum/num;
+	cerr << step << endl;
+
+	double initial_shift = step*((double)rand()/RAND_MAX);
+	cerr << initial_shift << endl;
 }
 
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
 	Image image_before, image_after;
 
 	if(argc != 3) {
