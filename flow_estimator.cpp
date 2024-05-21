@@ -10,7 +10,12 @@ struct Image {
 	vector<uint8_t> data;
 };
 
-bool read_image_file(Image *image_before, ifstream *before) {
+bool read_image_file(Image *image_before, ifstream *ifs) {
+	string buf;
+	while(not ifs->eof()) {
+		*ifs >> buf;
+		cout << buf << endl;
+	}
 	return true;
 }
 
