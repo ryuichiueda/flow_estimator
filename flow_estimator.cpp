@@ -69,9 +69,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (image_before.load(&before)) {
-		image_before.print();
+	if ( not image_before.load(&before) 
+	  or not image_after.load(&after)) {
+		return 1;
 	}
+
+	image_before.print();
 
 	return 0;
 }
