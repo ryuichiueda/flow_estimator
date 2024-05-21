@@ -10,6 +10,10 @@ struct Image {
 	vector<uint8_t> data;
 };
 
+bool read_image_file(Image *image_before, ifstream *before) {
+	return true;
+}
+
 int main(int argc, char *argv[]) {
 	Image image_before, image_after;
 
@@ -25,6 +29,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	read_image_file(&image_before, &before);
 
 	return 0;
 }
