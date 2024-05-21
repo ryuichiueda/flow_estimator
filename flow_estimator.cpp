@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <vector>
 #include <cstdint>
@@ -11,13 +12,14 @@ public:
 	~Image() {}
 	unsigned int width_;
 	unsigned int height_;
+	unsigned int depth_;
 	vector<uint8_t> data_;
 
 	void print()
 	{
 		for(int y=0;y<height_;y++) {
 			for(int x=0;x<width_;x++) {
-				cout << (int)data_[x + y*width_] << " ";
+				cout << setw(4) << (int)data_[x + y*width_];
 			}
 			cout << endl;
 		}
@@ -41,6 +43,8 @@ bool read_image_file(Image *image, ifstream *ifs)
 			image->width_ = stoi(buf);
 		}else if(counter == 2) {
 			image->height_ = stoi(buf);
+		}else if(counter == 3) {
+			image->depth_ = stoi(buf);
 		}else{
 			image->data_.push_back(stoi(buf));
 		}
