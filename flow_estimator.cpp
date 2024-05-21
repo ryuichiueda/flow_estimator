@@ -72,10 +72,31 @@ void sampling(Image *image, int num, vector<int> *sample)
 
 	uint64_t sum = image->sum();
 	double step = (double)sum/num;
-	cerr << step << endl;
+	cerr << "STEP: " << step << endl;
 
 	double initial_shift = step*((double)rand()/RAND_MAX);
 	cerr << initial_shift << endl;
+
+	uint64_t accum = image->data_[0];
+	int j = 0;
+	for(int i=0;i<num;i++){
+		uint64_t tick = (uint64_t)(i*step + initial_shift);
+		//cerr << "tick " << tick << " accum " << accum << endl;
+
+		if(tick < accum) {
+			sample->push_back(j);
+			continue;
+		}
+
+		while(tick >= accum) {
+			j += 1;
+			if (j >= image->data_.size()) {
+				cerr << "Overflow at sampling" << endl;
+				exit(1);
+			}
+			accum += image->data_[j];
+		}
+	}
 }
 
 int main(int argc, char *argv[])
@@ -104,6 +125,11 @@ int main(int argc, char *argv[])
 
 	vector<int> sample;
 	sampling(&image_before, 50, &sample);
+
+	for(auto p : sample){
+		cerr << p << " ";
+	}
+	cerr << endl;
 
 	return 0;
 }
