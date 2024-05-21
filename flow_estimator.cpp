@@ -24,34 +24,34 @@ public:
 			cout << endl;
 		}
 	}
-};
 
-bool read_image_file(Image *image, ifstream *ifs)
-{
-	string buf;
-	int counter = 0;
-
-	while(not ifs->eof()) {
-		*ifs >> buf;
-
-		if(counter == 0){
-			if(buf != "P2") {
-				cerr << "Not supprted format" << endl;
-				return false;
+	bool load(ifstream *ifs)
+	{
+		string buf;
+		int counter = 0;
+	
+		while(not ifs->eof()) {
+			*ifs >> buf;
+	
+			if(counter == 0){
+				if(buf != "P2") {
+					cerr << "Not supprted format" << endl;
+					return false;
+				}
+			}else if(counter == 1) {
+				width_ = stoi(buf);
+			}else if(counter == 2) {
+				height_ = stoi(buf);
+			}else if(counter == 3) {
+				depth_ = stoi(buf);
+			}else{
+				data_.push_back(stoi(buf));
 			}
-		}else if(counter == 1) {
-			image->width_ = stoi(buf);
-		}else if(counter == 2) {
-			image->height_ = stoi(buf);
-		}else if(counter == 3) {
-			image->depth_ = stoi(buf);
-		}else{
-			image->data_.push_back(stoi(buf));
+			counter++;
 		}
-		counter++;
+		return true;
 	}
-	return true;
-}
+};
 
 int main(int argc, char *argv[])
 {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (read_image_file(&image_before, &before)) {
+	if (image_before.load(&before)) {
 		image_before.print();
 	}
 
