@@ -51,7 +51,22 @@ public:
 		}
 		return true;
 	}
+
+	uint64_t sum(void) 
+	{
+		uint64_t ans = 0;
+		for(auto d : data_) {
+			ans += d;
+		}
+		return ans;
+	}
 };
+
+void sampling(Image *image, int num, vector<int> *sample)
+{
+	uint64_t sum = image->sum();
+	cerr << sum << endl;
+}
 
 int main(int argc, char *argv[])
 {
@@ -75,6 +90,9 @@ int main(int argc, char *argv[])
 	}
 
 	image_before.print();
+
+	vector<int> sample;
+	sampling(&image_before, 50, &sample);
 
 	return 0;
 }
