@@ -1,6 +1,6 @@
 # flow_estimator
 
-Output a one step future histogram estimated from two sequential ones.
+Output a one step future occupancy grid map estimated from two sequential ones.
 
 ## Quick Start
 
