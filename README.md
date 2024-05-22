@@ -26,29 +26,31 @@ P2
 
 ## I/O
 
-### Onput
+### Input
 
-The cpp program accepts two files via its arguments:
+The cpp program accepts two text PGM files via its arguments:
 * 1st file: the occupancy grid map obtained two step before
     * [example](./two_step_before.pgm)
-    * png converted from the example: ![](./doc/before.png)
+    * png converted from the example:
+
+![](./doc/before.png)
 * 2nd file: the occupancy grid map obtained one step before
     * [example](./one_step_before.pgm)
-    * png converted from the example: ![](./doc/after.png)
+    * png converted from the example:
 
-The occupancy grid map should be written in a text PGM (P2) file.
+![](./doc/after.png)
 
 
 ### Output
 
 The cpp program outputs the following data from its stdout:
 * a forecasted occupancy grid map as a text PGM format.
-
-### example
-
-* png image converted from the output:
+    * png image converted from the output:
 
 ![](./doc/estimation.png)
+
+
+## Other example
 
 * gif image built from the above images:
 
