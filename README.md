@@ -41,5 +41,5 @@ The cpp program outputs the following data from its stdout:
 
 ## TODO
 
-* To consider fixed obstacles (Two input PGM should be compared at first.)
 * To use better random variables
+* To make users can program their own estimator in the cpp file.
