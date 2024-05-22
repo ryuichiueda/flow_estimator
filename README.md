@@ -29,8 +29,8 @@ P2
 ### Input
 
 The cpp program accepts two files via its arguments:
-* the first file: the occupancy grid map obtained two step before
-* the second file: the occupancy grid map obtained one step before
+* 1st file: the occupancy grid map obtained two step before
+* 2nd file: the occupancy grid map obtained one step before
 
 The occupancy grid map should be written in a text PGM (P2) file.
 
@@ -41,5 +41,5 @@ The cpp program outputs the following data from its stdout:
 
 ## TODO
 
-* To consider fixed obstacles (two input PGM should be compared at first)
+* To consider fixed obstacles (Two input PGM should be compared at first.)
 * To use better random variables
