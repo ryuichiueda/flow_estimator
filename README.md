@@ -30,9 +30,11 @@ P2
 
 The cpp program accepts two files via its arguments:
 * 1st file: the occupancy grid map obtained two step before
-    * [example](./two_step_before.pgm)![](./doc/before.png)
+    * [example](./two_step_before.pgm)
+    * png converted from the example: ![](./doc/before.png)
 * 2nd file: the occupancy grid map obtained one step before
-    * [example](./one_step_before.pgm)![](./doc/after.png)
+    * [example](./one_step_before.pgm)
+    * png converted from the example: ![](./doc/after.png)
 
 The occupancy grid map should be written in a text PGM (P2) file.
 
