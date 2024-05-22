@@ -38,3 +38,8 @@ The occupancy grid map should be written in a text PGM (P2) file.
 
 The cpp program outputs the following data from its stdout:
 * a forecasted occupancy grid map as a text PGM format.
+
+## TODO
+
+* To consider fixed obstacles (two input PGM should be compared at first)
+* To use better random variables
