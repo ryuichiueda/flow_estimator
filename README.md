@@ -62,3 +62,7 @@ The cpp program outputs the following data from its stdout:
 
 * To use better random variables
 * To make users can program their own estimator in the cpp file.
+
+## Acknowledgment
+
+This work was supported by JSPS KAKENHI Grant Number JP24K15127.
