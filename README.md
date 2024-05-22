@@ -34,6 +34,11 @@ The cpp program accepts two files via its arguments:
 
 The occupancy grid map should be written in a text PGM (P2) file.
 
+#### examples
+
+![](./doc/before.png)
+![](./doc/after.png)
+
 ### Output
 
 The cpp program outputs the following data from its stdout:
