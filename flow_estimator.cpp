@@ -23,6 +23,9 @@ public:
 
 	void print()
 	{
+		cout << "P2" << endl;
+		cout << width_ << " " << height_ << endl;
+		cout << depth_ << endl;
 		for(int y=0;y<height_;y++) {
 			for(int x=0;x<width_;x++) {
 				cout << setw(4) << (int)data_[x + y*width_];
@@ -58,6 +61,7 @@ public:
 		return true;
 	}
 
+	/*
 	uint64_t sum(void) 
 	{
 		uint64_t ans = 0;
@@ -65,7 +69,7 @@ public:
 			ans += d;
 		}
 		return ans;
-	}
+	}*/
 };
 
 void sampling(Image *image, int num, vector<int> *sample)
@@ -75,12 +79,12 @@ void sampling(Image *image, int num, vector<int> *sample)
 		exit(1);
 	}
 
-	uint64_t sum = image->sum();
+	uint64_t sum = reduce(begin(image->data_), end(image->data_));
 	double step = (double)sum/num;
-	cerr << "STEP: " << step << endl;
+	//cerr << "STEP: " << step << endl;
 
 	double initial_shift = step*((double)rand()/RAND_MAX);
-	cerr << initial_shift << endl;
+	//cerr << initial_shift << endl;
 
 	uint64_t accum = image->data_[0];
 	int j = 0;
@@ -116,8 +120,15 @@ Pos toRandomXyPos(int pos_on_data, int width) {
 	return ans;
 }
 
-int xyToDataPos(double x, double y, int width) {
-	return (int)x + (int)y*width;
+int xyToDataPos(int x, int y, int width, int height) {
+	if (x < 0 || x >= width) {
+		return -1;
+	}
+	if (y < 0 || y >= height) {
+		return -1;
+	}
+
+	return x + y*width;
 }
 
 int main(int argc, char *argv[])
@@ -142,7 +153,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	image_before.print();
+	//image_before.print();
 
 	const int sample_num = 50;
 	vector<int> sample_before, sample_after;
@@ -158,11 +169,31 @@ int main(int argc, char *argv[])
 		sample_after_xy.push_back(toRandomXyPos(p, image_after.width_));
 	}
 
-	vector<Pos> new_xy;
+	uint64_t pixel_sum = reduce(begin(image_after.data_), end(image_after.data_));
+	double sample_weight = (double)pixel_sum/sample_num;
+
+	vector<double> vote(image_before.width_*image_before.height_, 0.0);
 	for(int i=0;i<sample_num;i++){
 		double new_x = 2*sample_after_xy[i].x - sample_before_xy[i].x;
 		double new_y = 2*sample_after_xy[i].y - sample_before_xy[i].y;
+
+		int pos = xyToDataPos((int)new_x, (int)new_y,
+				image_before.width_, image_before.height_);
+
+		vote[pos] += sample_weight;
 	}
+
+	Image ans = image_before;
+	ans.data_.clear();
+	for(double v : vote) {
+		if (v > image_after.depth_) {
+			ans.data_.push_back(image_after.depth_);
+		}else{
+			ans.data_.push_back((int)v);
+		}
+	}
+
+	ans.print();
 
 	return 0;
 }
