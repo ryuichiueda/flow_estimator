@@ -7,6 +7,11 @@
 
 using namespace std;
 
+struct Pos {
+	double x;
+	double y;
+};
+
 class Image {
 public:
 	Image() {}
@@ -99,6 +104,22 @@ void sampling(Image *image, int num, vector<int> *sample)
 	}
 }
 
+
+Pos toRandomXyPos(int pos_on_data, int width) {
+	int x = pos_on_data % width;
+	int y = pos_on_data / width;
+
+	Pos ans;
+	ans.x = (double)x + (double)rand()/RAND_MAX;
+	ans.y = (double)y + (double)rand()/RAND_MAX;
+
+	return ans;
+}
+
+int xyToDataPos(double x, double y, int width) {
+	return (int)x + (int)y*width;
+}
+
 int main(int argc, char *argv[])
 {
 	srand(time(NULL));
@@ -123,13 +144,25 @@ int main(int argc, char *argv[])
 
 	image_before.print();
 
-	vector<int> sample;
-	sampling(&image_before, 50, &sample);
+	const int sample_num = 50;
+	vector<int> sample_before, sample_after;
+	vector<Pos> sample_before_xy, sample_after_xy;
 
-	for(auto p : sample){
-		cerr << p << " ";
+	sampling(&image_before, sample_num, &sample_before);
+	for(auto p : sample_before){
+		sample_before_xy.push_back(toRandomXyPos(p, image_before.width_));
 	}
-	cerr << endl;
+
+	sampling(&image_after, sample_num, &sample_after);
+	for(auto p : sample_after){
+		sample_after_xy.push_back(toRandomXyPos(p, image_after.width_));
+	}
+
+	vector<Pos> new_xy;
+	for(int i=0;i<sample_num;i++){
+		double new_x = 2*sample_after_xy[i].x - sample_before_xy[i].x;
+		double new_y = 2*sample_after_xy[i].y - sample_before_xy[i].y;
+	}
 
 	return 0;
 }
