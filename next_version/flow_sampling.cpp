@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 	vector<double> sampled_motions, sampled_directions;
 
 	const int motion_sample_num = 50;
-	const double max_speed = 5.0;
+	const double max_speed = 3.0;
 	direction_sampling(motion_sample_num, &sampled_directions);
 	for(int i=0; i<motion_sample_num; i++){
 		sampled_motions.push_back(uniform_rand()*max_speed);
