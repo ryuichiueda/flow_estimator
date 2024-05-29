@@ -5,8 +5,17 @@
 #include <cstdint>
 #include <climits>
 #include <numeric>
+#include <random>
 
 using namespace std;
+
+const uint64_t rand_max = mt19937_64::max();
+random_device seed_gen;
+mt19937_64 rand_u64(seed_gen());
+
+double uniform_rand(){
+	return (double)rand_u64()/rand_max;
+}
 
 struct Pos {
 	double x;
@@ -61,16 +70,6 @@ public:
 		}
 		return true;
 	}
-
-	/*
-	uint64_t sum(void) 
-	{
-		uint64_t ans = 0;
-		for(auto d : data_) {
-			ans += d;
-		}
-		return ans;
-	}*/
 };
 
 void sampling(Image *image, int num, vector<int> *sample)
@@ -84,7 +83,7 @@ void sampling(Image *image, int num, vector<int> *sample)
 	double step = (double)sum/num;
 	//cerr << "STEP: " << step << endl;
 
-	double initial_shift = step*((double)rand()/RAND_MAX);
+	double initial_shift = step*uniform_rand();
 	//cerr << initial_shift << endl;
 
 	uint64_t accum = image->data_[0];
@@ -115,8 +114,8 @@ Pos toRandomXyPos(int pos_on_data, int width) {
 	int y = pos_on_data / width;
 
 	Pos ans;
-	ans.x = (double)x + (double)rand()/RAND_MAX;
-	ans.y = (double)y + (double)rand()/RAND_MAX;
+	ans.x = (double)x + uniform_rand();
+	ans.y = (double)y + uniform_rand();
 
 	return ans;
 }
@@ -134,13 +133,12 @@ int xyToDataPos(int x, int y, int width, int height) {
 
 int main(int argc, char *argv[])
 {
-	srand(time(NULL));
-	Image image_before, image_after;
-
 	if(argc != 3) {
 		cerr << "Invalid args" << endl;
 		return 1;
 	}
+
+        Image distribution_before, distribution_after;
 
 	ifstream before(argv[1]);
 	ifstream after(argv[2]);
@@ -149,52 +147,66 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if ( not image_before.load(&before) 
-	  or not image_after.load(&after)) {
+	if ( not distribution_before.load(&before) 
+	  or not distribution_after.load(&after)) {
 		return 1;
 	}
 
-	//image_before.print();
+	const int sample_num = 50;
+	vector<int> sample_index_before;
+	vector<Pos> sample_xy_before;
 
+	sampling(&distribution_before, sample_num, &sample_index_before);
+	for(auto p: sample_index_before){
+		sample_xy_before.push_back(toRandomXyPos(p, distribution_before.width_));
+	}
+
+	for(auto p: sample_xy_before) {
+		cout << p.x << "\t" << p.y << endl;
+	}
+	//distribution_before.print();
+
+	/*
 	const int sample_num = 50;
 	vector<int> sample_before, sample_after;
 	vector<Pos> sample_before_xy, sample_after_xy;
 
-	sampling(&image_before, sample_num, &sample_before);
+	sampling(&distribution_before, sample_num, &sample_before);
 	for(auto p : sample_before){
-		sample_before_xy.push_back(toRandomXyPos(p, image_before.width_));
+		sample_before_xy.push_back(toRandomXyPos(p, distribution_before.width_));
 	}
 
-	sampling(&image_after, sample_num, &sample_after);
+	sampling(&distribution_after, sample_num, &sample_after);
 	for(auto p : sample_after){
-		sample_after_xy.push_back(toRandomXyPos(p, image_after.width_));
+		sample_after_xy.push_back(toRandomXyPos(p, distribution_after.width_));
 	}
 
-	uint64_t pixel_sum = reduce(begin(image_after.data_), end(image_after.data_));
+	uint64_t pixel_sum = reduce(begin(distribution_after.data_), end(distribution_after.data_));
 	double sample_weight = (double)pixel_sum/sample_num;
 
-	vector<double> vote(image_before.width_*image_before.height_, 0.0);
+	vector<double> vote(distribution_before.width_*distribution_before.height_, 0.0);
 	for(int i=0;i<sample_num;i++){
 		double new_x = 2*sample_after_xy[i].x - sample_before_xy[i].x;
 		double new_y = 2*sample_after_xy[i].y - sample_before_xy[i].y;
 
 		int pos = xyToDataPos((int)new_x, (int)new_y,
-				image_before.width_, image_before.height_);
+				distribution_before.width_, distribution_before.height_);
 
 		vote[pos] += sample_weight;
 	}
 
-	Image ans = image_before;
+	Image ans = distribution_before;
 	ans.data_.clear();
 	for(double v : vote) {
-		if (v > image_after.depth_) {
-			ans.data_.push_back(image_after.depth_);
+		if (v > distribution_after.depth_) {
+			ans.data_.push_back(distribution_after.depth_);
 		}else{
 			ans.data_.push_back((int)v);
 		}
 	}
 
 	ans.print();
+	*/
 
 	return 0;
 }
