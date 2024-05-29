@@ -222,40 +222,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-
-	//distribution_before.print();
-
-	/*
-	const int before_pos_sample_num = 50;
-	vector<int> sample_before, sample_after;
-	vector<Pos> sample_before_xy, sample_after_xy;
-
-	sampling(&distribution_before, before_pos_sample_num, &sample_before);
-	for(auto p : sample_before){
-		sample_before_xy.push_back(toRandomXyPos(p, distribution_before.width_));
-	}
-
-	sampling(&distribution_after, before_pos_sample_num, &sample_after);
-	for(auto p : sample_after){
-		sample_after_xy.push_back(toRandomXyPos(p, distribution_after.width_));
-	}
-
-	uint64_t pixel_sum = reduce(begin(distribution_after.data_), end(distribution_after.data_));
-	double sample_weight = (double)pixel_sum/before_pos_sample_num;
-
-	vector<double> vote(distribution_before.width_*distribution_before.height_, 0.0);
-	for(int i=0;i<before_pos_sample_num;i++){
-		double new_x = 2*sample_after_xy[i].x - sample_before_xy[i].x;
-		double new_y = 2*sample_after_xy[i].y - sample_before_xy[i].y;
-
-		int pos = xyToDataPos((int)new_x, (int)new_y,
-				distribution_before.width_, distribution_before.height_);
-
-		vote[pos] += sample_weight;
-	}
-
-	*/
-
 	Image ans = distribution_before;
 	ans.data_.clear();
 	for(double v : vote) {
