@@ -108,6 +108,20 @@ void sampling(Image *image, int num, vector<int> *sample)
 	}
 }
 
+void direction_sampling(int num, vector<double> *sample) {
+	if (num <= 0) {
+		cerr << "Invalid sample num (in direction_sampling)" << endl;
+		exit(1);
+	}
+
+	double step = M_PI*2/num;
+	double initial_shift = step*uniform_rand();
+
+	for(int i=0; i<num; i++) {
+		sample->push_back(initial_shift + i*step);
+	}
+}
+
 
 Pos toRandomXyPos(int pos_on_data, int width) {
 	int x = pos_on_data % width;
@@ -152,40 +166,43 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	const int sample_num = 50;
+	const int before_pos_sample = 50;
 	vector<int> sample_index_before;
 	vector<Pos> sample_xy_before;
 
-	sampling(&distribution_before, sample_num, &sample_index_before);
-	for(auto p: sample_index_before){
+	sampling(&distribution_before, before_pos_sample, &sample_index_before);
+	for(auto &p: sample_index_before){
 		sample_xy_before.push_back(toRandomXyPos(p, distribution_before.width_));
 	}
 
-	for(auto p: sample_xy_before) {
+	for(auto &p: sample_xy_before) {
 		cout << p.x << "\t" << p.y << endl;
 	}
+
+	vector<double> sampled_speeds, sampled_directions;
+
 	//distribution_before.print();
 
 	/*
-	const int sample_num = 50;
+	const int before_pos_sample = 50;
 	vector<int> sample_before, sample_after;
 	vector<Pos> sample_before_xy, sample_after_xy;
 
-	sampling(&distribution_before, sample_num, &sample_before);
+	sampling(&distribution_before, before_pos_sample, &sample_before);
 	for(auto p : sample_before){
 		sample_before_xy.push_back(toRandomXyPos(p, distribution_before.width_));
 	}
 
-	sampling(&distribution_after, sample_num, &sample_after);
+	sampling(&distribution_after, before_pos_sample, &sample_after);
 	for(auto p : sample_after){
 		sample_after_xy.push_back(toRandomXyPos(p, distribution_after.width_));
 	}
 
 	uint64_t pixel_sum = reduce(begin(distribution_after.data_), end(distribution_after.data_));
-	double sample_weight = (double)pixel_sum/sample_num;
+	double sample_weight = (double)pixel_sum/before_pos_sample;
 
 	vector<double> vote(distribution_before.width_*distribution_before.height_, 0.0);
-	for(int i=0;i<sample_num;i++){
+	for(int i=0;i<before_pos_sample;i++){
 		double new_x = 2*sample_after_xy[i].x - sample_before_xy[i].x;
 		double new_y = 2*sample_after_xy[i].y - sample_before_xy[i].y;
 
