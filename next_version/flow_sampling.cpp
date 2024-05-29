@@ -180,15 +180,46 @@ int main(int argc, char *argv[])
 		cout << p.x << "\t" << p.y << endl;
 	}*/
 
-	vector<double> sampled_speeds, sampled_directions;
+	vector<double> sampled_motions, sampled_directions;
 
 	const int motion_sample_num = 50;
 	const double max_speed = 5.0;
 	direction_sampling(motion_sample_num, &sampled_directions);
 	for(int i=0; i<motion_sample_num; i++){
-		sampled_speeds.push_back(uniform_rand()*max_speed);
+		sampled_motions.push_back(uniform_rand()*max_speed);
 
-		cout << sampled_speeds[i] << " " << sampled_directions[i]*180/M_PI << endl;
+	//	cout << sampled_motions[i] << " " << sampled_directions[i]*180/M_PI << endl;
+	}
+
+	vector<int> vote(distribution_before.width_*distribution_before.height_, 0);
+
+	for(auto &from: sample_xy_before) {
+		for(int i=0; i<motion_sample_num; i++){
+			Pos after;
+			double move = sampled_motions[i];
+			double theta = sampled_directions[i];
+			after.x = from.x + move*cos(theta);
+			after.y = from.y + move*sin(theta);
+
+			int pos = xyToDataPos((int)after.x, (int)after.y,
+				distribution_before.width_, distribution_before.height_);
+
+			double weight = 0.0;
+			if (0 <= after.x and after.x < distribution_after.width_ 
+			and 0 <= after.y and after.y < distribution_after.height_ ) {
+				weight = (double)distribution_after.data_[pos];
+			}
+
+			after.x = from.x + 2*move*cos(theta);
+			after.y = from.y + 2*move*sin(theta);
+			int pos2 = xyToDataPos((int)after.x, (int)after.y,
+				distribution_before.width_, distribution_before.height_);
+
+			if (0 <= after.x and after.x < distribution_after.width_ 
+			and 0 <= after.y and after.y < distribution_after.height_ ) {
+				vote[pos2] += weight;
+			}
+		}
 	}
 
 
@@ -223,18 +254,19 @@ int main(int argc, char *argv[])
 		vote[pos] += sample_weight;
 	}
 
+	*/
+
 	Image ans = distribution_before;
 	ans.data_.clear();
 	for(double v : vote) {
-		if (v > distribution_after.depth_) {
-			ans.data_.push_back(distribution_after.depth_);
-		}else{
+//		if (v > distribution_after.depth_) {
+//			ans.data_.push_back(distribution_after.depth_);
+//		}else{
 			ans.data_.push_back((int)v);
-		}
+//		}
 	}
 
 	ans.print();
-	*/
 
 	return 0;
 }
