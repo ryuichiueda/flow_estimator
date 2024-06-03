@@ -199,17 +199,10 @@ int main(int argc, char *argv[])
 			//int pos = map_current.xyToIndex((int)current.x, (int)current.y);
 
 			double weight = map_current.xyToValue((int)current.x, (int)current.y);
-			/*
-			if (0 <= current.x and current.x < map_current.width_ 
-			and 0 <= current.y and current.y < map_current.height_ ) {
-				weight = (double)map_current.data_[pos];
-			}*/
 
 			Pos after = m.move(&from.pos, 2.0);
 			int pos2 = map_before.xyToIndex((int)after.x, (int)after.y);
-
-			if (0 <= after.x and after.x < map_current.width_ 
-			and 0 <= after.y and after.y < map_current.height_ ) {
+			if (pos2 >= 0){
 				vote[pos2] += weight;
 			}
 		}
