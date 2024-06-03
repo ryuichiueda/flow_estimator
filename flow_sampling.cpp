@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <climits>
+#include <cmath>
 #include <numeric>
 #include <random>
 
@@ -142,6 +143,40 @@ public:
 			return this->data_[index];
 		}
 	}
+
+	void getNeighborDistribution(int x, int y, vector<double> *dist) {
+		// -1.0: out of map
+		const int range = 2;
+		for(int ix = -range+x; ix <= range+x ; ix++ ){
+			if (ix < 0 || ix >= this->width_ ) {
+				for(int iy = -range+y; iy <= range+y ; iy++ )
+					dist->push_back(-1.0);
+
+				continue;
+			}
+
+			for(int iy = -range+y; iy <= range+y ; iy++ ){
+				if (iy < 0 || iy >= this->height_)
+					dist->push_back(-1.0);
+				else
+					dist->push_back(this->data_[ix + iy*this->width_]);
+			}
+
+		}
+
+		for(auto &p: *dist)
+			if( p <= 0.0 )
+				p += 0.00001;
+
+		double sum = 0.0;
+		for(auto &p: *dist)
+			if(p > 0.0)
+				sum += p;
+
+		for(auto &p: *dist)
+			if(p > 0.0)
+				p /= sum;
+	}
 };
 
 class Motion {
@@ -168,6 +203,17 @@ public:
 	}
 };
 
+double kld(vector<double> &before, vector<double> &current) {
+	double ans = 0.0;
+	for(int i=0; i<before.size(); i++) {
+		if (before[i] < 0.0 || current[i] < 0.0)
+			continue;
+			
+		ans += current[i]*(log(current[i]) - log(before[i]));
+	}
+	return ans;
+}
+
 int main(int argc, char *argv[])
 {
 	if(argc != 3) {
@@ -192,17 +238,37 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(50, &sample_before);
 
+	/*
+	vector<double> neigh;
+	map_before.getNeighborDistribution(
+			(int)sample_before[0].pos.x, 
+			(int)sample_before[0].pos.y, 
+			&neigh);
+	int k = 0;
+	for(auto &e: neigh){
+		cerr << e << " ";
+		if (++k%5 == 0 )
+			cerr << endl;
+	}
+	*/
+
+
 	vector<Motion> motions;
 	Motion::sampling(50, &motions);
 
-	//メモ: ハッシュマップにして範囲外も投票したほうがいい
 	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
 	for(auto &from: sample_before) {
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
-			double weight = map_current.xyToValue((int)current.x, (int)current.y);
 
+			vector<double> before_neigh, current_neigh;
+			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
+			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
+
+			double weight = kld(before_neigh, current_neigh);//map_current.xyToValue((int)current.x, (int)current.y);
+
+			//cerr << weight << " ";
 			Pos after = m.move(&from.pos, 2.0);
 			int pos = map_before.xyToIndex((int)after.x, (int)after.y);
 			if (pos >= 0){
