@@ -98,29 +98,17 @@ public:
 		return ans;
 	}
 
-	void sampling(int num, vector<Particle> *sample)
+	void sampling(unsigned int num, vector<Particle> *sample)
 	{
-		if (num <= 0) {
-			cerr << "Invalid sample num" << endl;
-			exit(1);
-		}
-	
 		uint64_t sum = reduce(begin(this->data_), end(this->data_));
 		double step = (double)sum/num;
-		//cerr << "STEP: " << step << endl;
-	
 		double initial_shift = step*uniform_rand();
-		//cerr << initial_shift << endl;
-	
 		uint64_t accum = this->data_[0];
 		int j = 0;
 		for(int i=0;i<num;i++){
 			uint64_t tick = (uint64_t)(i*step + initial_shift);
-			//cerr << "tick " << tick << " accum " << accum << endl;
 	
 			if(tick < accum) {
-				//int index = j;
-				//Pos p = toRandomXyPos(index); 
 				sample->push_back({j, toRandomXyPos(j)});
 				continue;
 			}
@@ -135,43 +123,6 @@ public:
 			}
 		}
 	}
-
-	/*
-	void sampling(int num, vector<int> *sample)
-	{
-		if (num <= 0) {
-			cerr << "Invalid sample num" << endl;
-			exit(1);
-		}
-	
-		uint64_t sum = reduce(begin(this->data_), end(this->data_));
-		double step = (double)sum/num;
-		//cerr << "STEP: " << step << endl;
-	
-		double initial_shift = step*uniform_rand();
-		//cerr << initial_shift << endl;
-	
-		uint64_t accum = this->data_[0];
-		int j = 0;
-		for(int i=0;i<num;i++){
-			uint64_t tick = (uint64_t)(i*step + initial_shift);
-			//cerr << "tick " << tick << " accum " << accum << endl;
-	
-			if(tick < accum) {
-				sample->push_back(j);
-				continue;
-			}
-	
-			while(tick >= accum) {
-				j += 1;
-				if (j >= this->data_.size()) {
-					cerr << "Overflow at sampling" << endl;
-					exit(1);
-				}
-				accum += this->data_[j];
-			}
-		}
-	}*/
 };
 
 void direction_sampling(int num, vector<double> *sample) {
@@ -223,16 +174,7 @@ int main(int argc, char *argv[])
 	}
 
 	vector<Particle> sample_before;
-
-	const int before_pos_sample_num = 50;
-	//vector<int> sample_index_before;
-	//vector<Pos> sample_xy_before;
-
-	distribution_before.sampling(before_pos_sample_num, &sample_before);
-	/*distribution_before.sampling(before_pos_sample_num, &sample_index_before);
-	for(auto &p: sample_index_before){
-		sample_xy_before.push_back(toRandomXyPos(p, distribution_before.width_));
-	}*/
+	distribution_before.sampling(50, &sample_before);
 
 	vector<double> sampled_motions, sampled_directions;
 
