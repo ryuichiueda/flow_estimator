@@ -87,6 +87,17 @@ public:
 		return true;
 	}
 
+	int xyToDataPos(int x, int y) {
+		if (x < 0 || x >= this->width_) {
+			return -1;
+		}
+		if (y < 0 || y >= this->height_) {
+			return -1;
+		}
+	
+		return x + y*this->width_;
+	}
+
 	Pos toRandomXyPos(int pos_on_data) {
 		int x = pos_on_data % this->width_;
 		int y = pos_on_data / this->width_;
@@ -125,20 +136,22 @@ public:
 	}
 };
 
-void direction_sampling(int num, vector<double> *sample) {
-	if (num <= 0) {
-		cerr << "Invalid sample num (in direction_sampling)" << endl;
-		exit(1);
+class Motion {
+public:
+	void direction_sampling(int num, vector<double> *sample) {
+		if (num <= 0) {
+			cerr << "Invalid sample num (in direction_sampling)" << endl;
+			exit(1);
+		}
+	
+		double step = M_PI*2/num;
+		double initial_shift = step*uniform_rand();
+	
+		for(int i=0; i<num; i++) {
+			sample->push_back(initial_shift + i*step);
+		}
 	}
-
-	double step = M_PI*2/num;
-	double initial_shift = step*uniform_rand();
-
-	for(int i=0; i<num; i++) {
-		sample->push_back(initial_shift + i*step);
-	}
-}
-
+};
 
 
 int xyToDataPos(int x, int y, int width, int height) {
@@ -159,7 +172,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-        Image distribution_before, distribution_current;
+        Image map_before, map_current;
 
 	ifstream before(argv[1]);
 	ifstream current(argv[2]);
@@ -168,24 +181,25 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if ( not distribution_before.load(&before) 
-	  or not distribution_current.load(&current)) {
+	if ( not map_before.load(&before) 
+	  or not map_current.load(&current)) {
 		return 1;
 	}
 
 	vector<Particle> sample_before;
-	distribution_before.sampling(50, &sample_before);
+	map_before.sampling(50, &sample_before);
 
+	Motion m;
 	vector<double> sampled_motions, sampled_directions;
 
 	const int motion_sample_num = 50;
 	const double max_speed = 3.0;
-	direction_sampling(motion_sample_num, &sampled_directions);
+	m.direction_sampling(motion_sample_num, &sampled_directions);
 	for(int i=0; i<motion_sample_num; i++){
 		sampled_motions.push_back(uniform_rand()*max_speed);
 	}
 
-	vector<int> vote(distribution_before.width_*distribution_before.height_, 0);
+	vector<int> vote(map_before.width_*map_before.height_, 0);
 
 	for(auto &from: sample_before) {
 		for(int i=0; i<motion_sample_num; i++){
@@ -195,29 +209,28 @@ int main(int argc, char *argv[])
 			current.x = from.pos.x + move*cos(theta);
 			current.y = from.pos.y + move*sin(theta);
 
-			int pos = xyToDataPos((int)current.x, (int)current.y,
-				distribution_before.width_, distribution_before.height_);
+			int pos = map_current.xyToDataPos((int)current.x, (int)current.y);
 
 			double weight = 0.0;
-			if (0 <= current.x and current.x < distribution_current.width_ 
-			and 0 <= current.y and current.y < distribution_current.height_ ) {
-				weight = (double)distribution_current.data_[pos];
+			if (0 <= current.x and current.x < map_current.width_ 
+			and 0 <= current.y and current.y < map_current.height_ ) {
+				weight = (double)map_current.data_[pos];
 			}
 
 			Pos after;
 			after.x = from.pos.x + 2*move*cos(theta);
 			after.y = from.pos.y + 2*move*sin(theta);
 			int pos2 = xyToDataPos((int)after.x, (int)after.y,
-				distribution_before.width_, distribution_before.height_);
+				map_before.width_, map_before.height_);
 
-			if (0 <= after.x and after.x < distribution_current.width_ 
-			and 0 <= after.y and after.y < distribution_current.height_ ) {
+			if (0 <= after.x and after.x < map_current.width_ 
+			and 0 <= after.y and after.y < map_current.height_ ) {
 				vote[pos2] += weight;
 			}
 		}
 	}
 
-	Image ans = distribution_before;
+	Image ans = map_before;
 	ans.data_.clear();
 	for(double v : vote) {
 //		if (v > distribution_after.depth_) {
