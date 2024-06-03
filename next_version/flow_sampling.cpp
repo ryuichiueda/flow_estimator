@@ -70,43 +70,43 @@ public:
 		}
 		return true;
 	}
-};
 
-void sampling(Image *image, int num, vector<int> *sample)
-{
-	if (num <= 0) {
-		cerr << "Invalid sample num" << endl;
-		exit(1);
-	}
-
-	uint64_t sum = reduce(begin(image->data_), end(image->data_));
-	double step = (double)sum/num;
-	//cerr << "STEP: " << step << endl;
-
-	double initial_shift = step*uniform_rand();
-	//cerr << initial_shift << endl;
-
-	uint64_t accum = image->data_[0];
-	int j = 0;
-	for(int i=0;i<num;i++){
-		uint64_t tick = (uint64_t)(i*step + initial_shift);
-		//cerr << "tick " << tick << " accum " << accum << endl;
-
-		if(tick < accum) {
-			sample->push_back(j);
-			continue;
+	void sampling(int num, vector<int> *sample)
+	{
+		if (num <= 0) {
+			cerr << "Invalid sample num" << endl;
+			exit(1);
 		}
-
-		while(tick >= accum) {
-			j += 1;
-			if (j >= image->data_.size()) {
-				cerr << "Overflow at sampling" << endl;
-				exit(1);
+	
+		uint64_t sum = reduce(begin(this->data_), end(this->data_));
+		double step = (double)sum/num;
+		//cerr << "STEP: " << step << endl;
+	
+		double initial_shift = step*uniform_rand();
+		//cerr << initial_shift << endl;
+	
+		uint64_t accum = this->data_[0];
+		int j = 0;
+		for(int i=0;i<num;i++){
+			uint64_t tick = (uint64_t)(i*step + initial_shift);
+			//cerr << "tick " << tick << " accum " << accum << endl;
+	
+			if(tick < accum) {
+				sample->push_back(j);
+				continue;
 			}
-			accum += image->data_[j];
+	
+			while(tick >= accum) {
+				j += 1;
+				if (j >= this->data_.size()) {
+					cerr << "Overflow at sampling" << endl;
+					exit(1);
+				}
+				accum += this->data_[j];
+			}
 		}
 	}
-}
+};
 
 void direction_sampling(int num, vector<double> *sample) {
 	if (num <= 0) {
@@ -152,17 +152,17 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-        Image distribution_before, distribution_after;
+        Image distribution_before, distribution_current;
 
 	ifstream before(argv[1]);
-	ifstream after(argv[2]);
-	if (not before or not after) {
+	ifstream current(argv[2]);
+	if (not before or not current) {
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
 
 	if ( not distribution_before.load(&before) 
-	  or not distribution_after.load(&after)) {
+	  or not distribution_current.load(&current)) {
 		return 1;
 	}
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	vector<int> sample_index_before;
 	vector<Pos> sample_xy_before;
 
-	sampling(&distribution_before, before_pos_sample_num, &sample_index_before);
+	distribution_before.sampling(before_pos_sample_num, &sample_index_before);
 	for(auto &p: sample_index_before){
 		sample_xy_before.push_back(toRandomXyPos(p, distribution_before.width_));
 	}
@@ -195,28 +195,29 @@ int main(int argc, char *argv[])
 
 	for(auto &from: sample_xy_before) {
 		for(int i=0; i<motion_sample_num; i++){
-			Pos after;
+			Pos current;
 			double move = sampled_motions[i];
 			double theta = sampled_directions[i];
-			after.x = from.x + move*cos(theta);
-			after.y = from.y + move*sin(theta);
+			current.x = from.x + move*cos(theta);
+			current.y = from.y + move*sin(theta);
 
-			int pos = xyToDataPos((int)after.x, (int)after.y,
+			int pos = xyToDataPos((int)current.x, (int)current.y,
 				distribution_before.width_, distribution_before.height_);
 
 			double weight = 0.0;
-			if (0 <= after.x and after.x < distribution_after.width_ 
-			and 0 <= after.y and after.y < distribution_after.height_ ) {
-				weight = (double)distribution_after.data_[pos];
+			if (0 <= current.x and current.x < distribution_current.width_ 
+			and 0 <= current.y and current.y < distribution_current.height_ ) {
+				weight = (double)distribution_current.data_[pos];
 			}
 
+			Pos after;
 			after.x = from.x + 2*move*cos(theta);
 			after.y = from.y + 2*move*sin(theta);
 			int pos2 = xyToDataPos((int)after.x, (int)after.y,
 				distribution_before.width_, distribution_before.height_);
 
-			if (0 <= after.x and after.x < distribution_after.width_ 
-			and 0 <= after.y and after.y < distribution_after.height_ ) {
+			if (0 <= after.x and after.x < distribution_current.width_ 
+			and 0 <= after.y and after.y < distribution_current.height_ ) {
 				vote[pos2] += weight;
 			}
 		}

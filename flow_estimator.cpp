@@ -61,16 +61,6 @@ public:
 		}
 		return true;
 	}
-
-	/*
-	uint64_t sum(void) 
-	{
-		uint64_t ans = 0;
-		for(auto d : data_) {
-			ans += d;
-		}
-		return ans;
-	}*/
 };
 
 void sampling(Image *image, int num, vector<int> *sample)
