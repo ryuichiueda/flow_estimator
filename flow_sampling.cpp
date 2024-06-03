@@ -32,6 +32,11 @@ private:
 	vector<uint8_t> data_;
 public:
 	Map() {}
+
+	Map(int w, int h, int d) : width_(w), height_(h), depth_(d) {
+		data_.assign(w*h, 0);
+	}
+
 	~Map() {}
 	unsigned int width_;
 	unsigned int height_;
@@ -190,7 +195,7 @@ int main(int argc, char *argv[])
 	vector<Motion> motions;
 	Motion::sampling(50, &motions);
 
-	vector<int> vote(map_before.width_*map_before.height_, 0);
+	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
 	for(auto &from: sample_before) {
 		for(auto &m: motions) {
@@ -205,15 +210,10 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	Map ans = map_before;
+	Map ans(map_current.width_, map_current.height_, map_current.depth_);
 	int i = 0;
 	for(double v : vote) {
-//		if (v > distribution_after.depth_) {
-//			ans.data_.push_back(distribution_after.depth_);
-//		}else{
-			ans.setValue(i++, (int)v);
-		//	ans.data_.push_back((int)v);
-//		}
+		ans.setValue(i++, (int)v);
 	}
 
 	ans.print();
