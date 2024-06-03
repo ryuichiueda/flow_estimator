@@ -195,6 +195,7 @@ int main(int argc, char *argv[])
 	vector<Motion> motions;
 	Motion::sampling(50, &motions);
 
+	//メモ: ハッシュマップにして範囲外も投票したほうがいい
 	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
 	for(auto &from: sample_before) {
