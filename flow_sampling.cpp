@@ -195,21 +195,17 @@ int main(int argc, char *argv[])
 	for(auto &from: sample_before) {
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
-
-			//int pos = map_current.xyToIndex((int)current.x, (int)current.y);
-
 			double weight = map_current.xyToValue((int)current.x, (int)current.y);
 
 			Pos after = m.move(&from.pos, 2.0);
-			int pos2 = map_before.xyToIndex((int)after.x, (int)after.y);
-			if (pos2 >= 0){
-				vote[pos2] += weight;
+			int pos = map_before.xyToIndex((int)after.x, (int)after.y);
+			if (pos >= 0){
+				vote[pos] += weight;
 			}
 		}
 	}
 
 	Map ans = map_before;
-	//ans.data_.clear();
 	int i = 0;
 	for(double v : vote) {
 //		if (v > distribution_after.depth_) {
