@@ -146,7 +146,7 @@ public:
 
 	void getNeighborDistribution(int x, int y, vector<double> *dist) {
 		// -1.0: out of map
-		const int range = 2;
+		const int range = 1;
 		for(int ix = -range+x; ix <= range+x ; ix++ ){
 			if (ix < 0 || ix >= this->width_ ) {
 				for(int iy = -range+y; iy <= range+y ; iy++ )
@@ -266,7 +266,10 @@ int main(int argc, char *argv[])
 			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
 			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
 
-			double weight = kld(before_neigh, current_neigh);//map_current.xyToValue((int)current.x, (int)current.y);
+			//double weight = kld(before_neigh, current_neigh);
+			//double weight = map_current.xyToValue((int)current.x, (int)current.y);
+			double weight = kld(before_neigh, current_neigh) 
+				* map_current.xyToValue((int)current.x, (int)current.y);
 
 			//cerr << weight << " ";
 			Pos after = m.move(&from.pos, 2.0);
