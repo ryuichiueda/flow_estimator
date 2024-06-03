@@ -138,6 +138,9 @@ public:
 
 class Motion {
 public:
+	double velocity;
+	double direction;
+
 	void direction_sampling(int num, vector<double> *sample) {
 		if (num <= 0) {
 			cerr << "Invalid sample num (in direction_sampling)" << endl;
@@ -149,6 +152,17 @@ public:
 	
 		for(int i=0; i<num; i++) {
 			sample->push_back(initial_shift + i*step);
+		}
+	}
+
+	static void sampling(unsigned int num, vector<Motion> *sample) {
+		double step = M_PI*2/num;
+		double initial_shift = step*uniform_rand();
+
+		const double max_speed = 3.0;
+	
+		for(int i=0; i<num; i++) {
+			sample->push_back({max_speed*uniform_rand(), initial_shift + i*step});
 		}
 	}
 };
@@ -189,25 +203,16 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(50, &sample_before);
 
-	Motion m;
-	vector<double> sampled_motions, sampled_directions;
-
-	const int motion_sample_num = 50;
-	const double max_speed = 3.0;
-	m.direction_sampling(motion_sample_num, &sampled_directions);
-	for(int i=0; i<motion_sample_num; i++){
-		sampled_motions.push_back(uniform_rand()*max_speed);
-	}
+	vector<Motion> motions;
+	Motion::sampling(50, &motions);
 
 	vector<int> vote(map_before.width_*map_before.height_, 0);
 
 	for(auto &from: sample_before) {
-		for(int i=0; i<motion_sample_num; i++){
+		for(auto &m: motions) {
 			Pos current;
-			double move = sampled_motions[i];
-			double theta = sampled_directions[i];
-			current.x = from.pos.x + move*cos(theta);
-			current.y = from.pos.y + move*sin(theta);
+			current.x = from.pos.x + m.velocity*cos(m.direction);
+			current.y = from.pos.y + m.velocity*sin(m.direction);
 
 			int pos = map_current.xyToDataPos((int)current.x, (int)current.y);
 
@@ -218,8 +223,8 @@ int main(int argc, char *argv[])
 			}
 
 			Pos after;
-			after.x = from.pos.x + 2*move*cos(theta);
-			after.y = from.pos.y + 2*move*sin(theta);
+			after.x = from.pos.x + 2*m.velocity*cos(m.direction);
+			after.y = from.pos.y + 2*m.velocity*sin(m.direction);
 			int pos2 = xyToDataPos((int)after.x, (int)after.y,
 				map_before.width_, map_before.height_);
 

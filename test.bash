@@ -1,5 +1,5 @@
 #!/bin/bash
 
-g++ -std=c++17 ./flow_estimator.cpp
+g++ -std=c++17 ./flow_sampling.cpp
 
-time ./a.out <(cat ./two_step_before.pgm |sed 's/#.*//') <(cat ./one_step_before.pgm |sed 's/#.*//')
+time ./a.out <(cat ./image1.pgm |sed 's/#.*//') <(cat ./image2.pgm |sed 's/#.*//')
