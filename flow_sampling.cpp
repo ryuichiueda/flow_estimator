@@ -27,21 +27,10 @@ struct Particle {
 	Pos pos;
 };
 
-Pos toRandomXyPos(int pos_on_data, int width) {
-       int x = pos_on_data % width;
-       int y = pos_on_data / width;
-
-       Pos ans;
-       ans.x = (double)x + uniform_rand();
-       ans.y = (double)y + uniform_rand();
-
-       return ans;
-}
-
-class Image {
+class Map {
 public:
-	Image() {}
-	~Image() {}
+	Map() {}
+	~Map() {}
 	unsigned int width_;
 	unsigned int height_;
 	unsigned int depth_;
@@ -60,7 +49,7 @@ public:
 		}
 	}
 
-	bool load(ifstream *ifs)
+	bool load_from_pgm(ifstream *ifs)
 	{
 		string buf;
 		int counter = 0;
@@ -160,18 +149,6 @@ public:
 	}
 };
 
-
-int xyToDataPos(int x, int y, int width, int height) {
-	if (x < 0 || x >= width) {
-		return -1;
-	}
-	if (y < 0 || y >= height) {
-		return -1;
-	}
-
-	return x + y*width;
-}
-
 int main(int argc, char *argv[])
 {
 	if(argc != 3) {
@@ -179,7 +156,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-        Image map_before, map_current;
+        Map map_before, map_current;
 
 	ifstream before(argv[1]);
 	ifstream current(argv[2]);
@@ -188,8 +165,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if ( not map_before.load(&before) 
-	  or not map_current.load(&current)) {
+	if ( not map_before.load_from_pgm(&before) 
+	  or not map_current.load_from_pgm(&current)) {
 		return 1;
 	}
 
@@ -214,8 +191,7 @@ int main(int argc, char *argv[])
 			}
 
 			Pos after = m.move(&from.pos, 2.0);
-			int pos2 = xyToDataPos((int)after.x, (int)after.y,
-				map_before.width_, map_before.height_);
+			int pos2 = map_before.xyToDataPos((int)after.x, (int)after.y);
 
 			if (0 <= after.x and after.x < map_current.width_ 
 			and 0 <= after.y and after.y < map_current.height_ ) {
@@ -224,7 +200,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	Image ans = map_before;
+	Map ans = map_before;
 	ans.data_.clear();
 	for(double v : vote) {
 //		if (v > distribution_after.depth_) {
