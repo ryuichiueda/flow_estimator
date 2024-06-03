@@ -141,18 +141,11 @@ public:
 	double velocity;
 	double direction;
 
-	void direction_sampling(int num, vector<double> *sample) {
-		if (num <= 0) {
-			cerr << "Invalid sample num (in direction_sampling)" << endl;
-			exit(1);
-		}
-	
-		double step = M_PI*2/num;
-		double initial_shift = step*uniform_rand();
-	
-		for(int i=0; i<num; i++) {
-			sample->push_back(initial_shift + i*step);
-		}
+	Pos move(Pos *from, double time) {
+		Pos ans;
+		ans.x = from->x + time*this->velocity*cos(this->direction);
+		ans.y = from->y + time*this->velocity*sin(this->direction);
+		return ans;
 	}
 
 	static void sampling(unsigned int num, vector<Motion> *sample) {
@@ -210,9 +203,7 @@ int main(int argc, char *argv[])
 
 	for(auto &from: sample_before) {
 		for(auto &m: motions) {
-			Pos current;
-			current.x = from.pos.x + m.velocity*cos(m.direction);
-			current.y = from.pos.y + m.velocity*sin(m.direction);
+			Pos current = m.move(&from.pos, 1.0);
 
 			int pos = map_current.xyToDataPos((int)current.x, (int)current.y);
 
@@ -222,9 +213,7 @@ int main(int argc, char *argv[])
 				weight = (double)map_current.data_[pos];
 			}
 
-			Pos after;
-			after.x = from.pos.x + 2*m.velocity*cos(m.direction);
-			after.y = from.pos.y + 2*m.velocity*sin(m.direction);
+			Pos after = m.move(&from.pos, 2.0);
 			int pos2 = xyToDataPos((int)after.x, (int)after.y,
 				map_before.width_, map_before.height_);
 
