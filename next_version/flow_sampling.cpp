@@ -22,6 +22,22 @@ struct Pos {
 	double y;
 };
 
+struct Particle {
+	int index;
+	Pos pos;
+};
+
+Pos toRandomXyPos(int pos_on_data, int width) {
+       int x = pos_on_data % width;
+       int y = pos_on_data / width;
+
+       Pos ans;
+       ans.x = (double)x + uniform_rand();
+       ans.y = (double)y + uniform_rand();
+
+       return ans;
+}
+
 class Image {
 public:
 	Image() {}
@@ -71,6 +87,56 @@ public:
 		return true;
 	}
 
+	Pos toRandomXyPos(int pos_on_data) {
+		int x = pos_on_data % this->width_;
+		int y = pos_on_data / this->width_;
+	
+		Pos ans;
+		ans.x = (double)x + uniform_rand();
+		ans.y = (double)y + uniform_rand();
+	
+		return ans;
+	}
+
+	void sampling(int num, vector<Particle> *sample)
+	{
+		if (num <= 0) {
+			cerr << "Invalid sample num" << endl;
+			exit(1);
+		}
+	
+		uint64_t sum = reduce(begin(this->data_), end(this->data_));
+		double step = (double)sum/num;
+		//cerr << "STEP: " << step << endl;
+	
+		double initial_shift = step*uniform_rand();
+		//cerr << initial_shift << endl;
+	
+		uint64_t accum = this->data_[0];
+		int j = 0;
+		for(int i=0;i<num;i++){
+			uint64_t tick = (uint64_t)(i*step + initial_shift);
+			//cerr << "tick " << tick << " accum " << accum << endl;
+	
+			if(tick < accum) {
+				//int index = j;
+				//Pos p = toRandomXyPos(index); 
+				sample->push_back({j, toRandomXyPos(j)});
+				continue;
+			}
+	
+			while(tick >= accum) {
+				j += 1;
+				if (j >= this->data_.size()) {
+					cerr << "Overflow at sampling" << endl;
+					exit(1);
+				}
+				accum += this->data_[j];
+			}
+		}
+	}
+
+	/*
 	void sampling(int num, vector<int> *sample)
 	{
 		if (num <= 0) {
@@ -105,7 +171,7 @@ public:
 				accum += this->data_[j];
 			}
 		}
-	}
+	}*/
 };
 
 void direction_sampling(int num, vector<double> *sample) {
@@ -123,16 +189,6 @@ void direction_sampling(int num, vector<double> *sample) {
 }
 
 
-Pos toRandomXyPos(int pos_on_data, int width) {
-	int x = pos_on_data % width;
-	int y = pos_on_data / width;
-
-	Pos ans;
-	ans.x = (double)x + uniform_rand();
-	ans.y = (double)y + uniform_rand();
-
-	return ans;
-}
 
 int xyToDataPos(int x, int y, int width, int height) {
 	if (x < 0 || x >= width) {
@@ -166,18 +222,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	const int before_pos_sample_num = 50;
-	vector<int> sample_index_before;
-	vector<Pos> sample_xy_before;
+	vector<Particle> sample_before;
 
-	distribution_before.sampling(before_pos_sample_num, &sample_index_before);
+	const int before_pos_sample_num = 50;
+	//vector<int> sample_index_before;
+	//vector<Pos> sample_xy_before;
+
+	distribution_before.sampling(before_pos_sample_num, &sample_before);
+	/*distribution_before.sampling(before_pos_sample_num, &sample_index_before);
 	for(auto &p: sample_index_before){
 		sample_xy_before.push_back(toRandomXyPos(p, distribution_before.width_));
-	}
-
-	/*
-	for(auto &p: sample_xy_before) {
-		cout << p.x << "\t" << p.y << endl;
 	}*/
 
 	vector<double> sampled_motions, sampled_directions;
@@ -187,19 +241,17 @@ int main(int argc, char *argv[])
 	direction_sampling(motion_sample_num, &sampled_directions);
 	for(int i=0; i<motion_sample_num; i++){
 		sampled_motions.push_back(uniform_rand()*max_speed);
-
-	//	cout << sampled_motions[i] << " " << sampled_directions[i]*180/M_PI << endl;
 	}
 
 	vector<int> vote(distribution_before.width_*distribution_before.height_, 0);
 
-	for(auto &from: sample_xy_before) {
+	for(auto &from: sample_before) {
 		for(int i=0; i<motion_sample_num; i++){
 			Pos current;
 			double move = sampled_motions[i];
 			double theta = sampled_directions[i];
-			current.x = from.x + move*cos(theta);
-			current.y = from.y + move*sin(theta);
+			current.x = from.pos.x + move*cos(theta);
+			current.y = from.pos.y + move*sin(theta);
 
 			int pos = xyToDataPos((int)current.x, (int)current.y,
 				distribution_before.width_, distribution_before.height_);
@@ -211,8 +263,8 @@ int main(int argc, char *argv[])
 			}
 
 			Pos after;
-			after.x = from.x + 2*move*cos(theta);
-			after.y = from.y + 2*move*sin(theta);
+			after.x = from.pos.x + 2*move*cos(theta);
+			after.y = from.pos.y + 2*move*sin(theta);
 			int pos2 = xyToDataPos((int)after.x, (int)after.y,
 				distribution_before.width_, distribution_before.height_);
 
