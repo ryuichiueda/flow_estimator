@@ -28,13 +28,14 @@ struct Particle {
 };
 
 class Map {
+private:
+	vector<uint8_t> data_;
 public:
 	Map() {}
 	~Map() {}
 	unsigned int width_;
 	unsigned int height_;
 	unsigned int depth_;
-	vector<uint8_t> data_;
 
 	void print()
 	{
@@ -76,7 +77,11 @@ public:
 		return true;
 	}
 
-	int xyToDataPos(int x, int y) {
+	void setValue(int index, int value) {
+		this->data_[index] = value;
+	}
+
+	int xyToIndex(int x, int y) {
 		if (x < 0 || x >= this->width_) {
 			return -1;
 		}
@@ -121,6 +126,15 @@ public:
 				}
 				accum += this->data_[j];
 			}
+		}
+	}
+
+	int xyToValue(int x, int y) {
+		int index = xyToIndex(x, y);
+		if (index < 0) {
+			return 0;
+		}else {
+			return this->data_[index];
 		}
 	}
 };
@@ -182,16 +196,17 @@ int main(int argc, char *argv[])
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
 
-			int pos = map_current.xyToDataPos((int)current.x, (int)current.y);
+			//int pos = map_current.xyToIndex((int)current.x, (int)current.y);
 
-			double weight = 0.0;
+			double weight = map_current.xyToValue((int)current.x, (int)current.y);
+			/*
 			if (0 <= current.x and current.x < map_current.width_ 
 			and 0 <= current.y and current.y < map_current.height_ ) {
 				weight = (double)map_current.data_[pos];
-			}
+			}*/
 
 			Pos after = m.move(&from.pos, 2.0);
-			int pos2 = map_before.xyToDataPos((int)after.x, (int)after.y);
+			int pos2 = map_before.xyToIndex((int)after.x, (int)after.y);
 
 			if (0 <= after.x and after.x < map_current.width_ 
 			and 0 <= after.y and after.y < map_current.height_ ) {
@@ -201,12 +216,14 @@ int main(int argc, char *argv[])
 	}
 
 	Map ans = map_before;
-	ans.data_.clear();
+	//ans.data_.clear();
+	int i = 0;
 	for(double v : vote) {
 //		if (v > distribution_after.depth_) {
 //			ans.data_.push_back(distribution_after.depth_);
 //		}else{
-			ans.data_.push_back((int)v);
+			ans.setValue(i++, (int)v);
+		//	ans.data_.push_back((int)v);
 //		}
 	}
 
