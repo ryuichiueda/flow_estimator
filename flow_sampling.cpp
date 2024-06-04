@@ -240,14 +240,15 @@ int main(int argc, char *argv[])
 	}
 
 	vector<Particle> sample_before;
-	map_before.sampling(50, &sample_before);
+	map_before.sampling(100, &sample_before);
 
 	vector<Motion> motions;
-	Motion::sampling(50, &motions);
+	Motion::sampling(100, &motions);
 
 	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
 	for(auto &from: sample_before) {
+		vector<double> weights;
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
 
@@ -255,17 +256,24 @@ int main(int argc, char *argv[])
 			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
 			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
 
-			cerr <<  rms(before_neigh, current_neigh) << " ";
+//			cerr <<  rms(before_neigh, current_neigh) << " ";
 
 			double weight = (1.0 - rms(before_neigh, current_neigh))
 				* map_current.xyToValue((int)current.x, (int)current.y);
+			weights.push_back(weight);
+		}
 
+		double sum = reduce(begin(weights), end(weights));
+		int i = 0;
+
+		for(auto &m: motions) {
 			//cerr << weight << " ";
 			Pos after = m.move(&from.pos, 2.0);
 			int pos = map_before.xyToIndex((int)after.x, (int)after.y);
 			if (pos >= 0){
-				vote[pos] += weight;
+				vote[pos] += weights[i]/sum*10;
 			}
+			i++;
 		}
 	}
 
