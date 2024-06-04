@@ -145,28 +145,23 @@ public:
 	}
 
 	void getNeighborDistribution(int x, int y, vector<double> *dist) {
-		// -1.0: out of map
-		const int range = 1;
+		const int range = 2;
 		for(int ix = -range+x; ix <= range+x ; ix++ ){
 			if (ix < 0 || ix >= this->width_ ) {
 				for(int iy = -range+y; iy <= range+y ; iy++ )
-					dist->push_back(-1.0);
+					dist->push_back(0.0);
 
 				continue;
 			}
 
 			for(int iy = -range+y; iy <= range+y ; iy++ ){
 				if (iy < 0 || iy >= this->height_)
-					dist->push_back(-1.0);
+					dist->push_back(0.0);
 				else
 					dist->push_back(this->data_[ix + iy*this->width_]);
 			}
 
 		}
-
-		for(auto &p: *dist)
-			if( p <= 0.0 )
-				p += 0.00001;
 
 		double sum = 0.0;
 		for(auto &p: *dist)
@@ -214,6 +209,15 @@ double kld(vector<double> &before, vector<double> &current) {
 	return ans;
 }
 
+double rms(vector<double> &before, vector<double> &current) {
+	double square_sum = 0.0;
+	for(int i=0; i<before.size(); i++) {
+		double diff = current[i] - before[i];
+		square_sum += diff*diff;
+	}
+	return sqrt(square_sum/before.size());
+}
+
 int main(int argc, char *argv[])
 {
 	if(argc != 3) {
@@ -238,21 +242,6 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(50, &sample_before);
 
-	/*
-	vector<double> neigh;
-	map_before.getNeighborDistribution(
-			(int)sample_before[0].pos.x, 
-			(int)sample_before[0].pos.y, 
-			&neigh);
-	int k = 0;
-	for(auto &e: neigh){
-		cerr << e << " ";
-		if (++k%5 == 0 )
-			cerr << endl;
-	}
-	*/
-
-
 	vector<Motion> motions;
 	Motion::sampling(50, &motions);
 
@@ -266,9 +255,9 @@ int main(int argc, char *argv[])
 			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
 			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
 
-			//double weight = kld(before_neigh, current_neigh);
-			//double weight = map_current.xyToValue((int)current.x, (int)current.y);
-			double weight = kld(before_neigh, current_neigh) 
+			cerr <<  rms(before_neigh, current_neigh) << " ";
+
+			double weight = (1.0 - rms(before_neigh, current_neigh))
 				* map_current.xyToValue((int)current.x, (int)current.y);
 
 			//cerr << weight << " ";
