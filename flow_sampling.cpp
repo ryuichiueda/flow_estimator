@@ -176,13 +176,13 @@ public:
 
 class Motion {
 public:
-	double velocity;
-	double direction;
+	double velocity_;
+	double direction_;
 
 	Pos move(Pos *from, double time) {
 		Pos ans;
-		ans.x = from->x + time*this->velocity*cos(this->direction);
-		ans.y = from->y + time*this->velocity*sin(this->direction);
+		ans.x = from->x + time*this->velocity_*cos(this->direction_);
+		ans.y = from->y + time*this->velocity_*sin(this->direction_);
 		return ans;
 	}
 
@@ -195,6 +195,36 @@ public:
 		for(int i=0; i<num; i++) {
 			sample->push_back({max_speed*uniform_rand(), initial_shift + i*step});
 		}
+	}
+};
+
+class Motion2 {
+public:
+	int ix_;
+	int iy_;
+	double weight_;
+
+	Pos move(Pos *from, double time) {
+		Pos ans;
+		ans.x = from->x + time*this->ix_;
+		ans.y = from->y + time*this->iy_;
+		return ans;
+	}
+
+	static void sampling(vector<Motion2> *sample) {
+		const int max_speed = 3;
+
+		for(int ix=-max_speed; ix<=max_speed; ix++){
+			for(int iy=-max_speed; iy<=max_speed; iy++){
+				double reduce = ix*ix + iy*iy + 1.0;
+				sample->push_back({ix, iy, 1.0/reduce});
+			//	sample->at(sample->size()-1).print();
+			}
+		}
+	}
+
+	void print(void){
+		cout << ix_ << " " << iy_ << " " << weight_ << endl;
 	}
 };
 
@@ -242,8 +272,8 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(100, &sample_before);
 
-	vector<Motion> motions;
-	Motion::sampling(100, &motions);
+	vector<Motion2> motions;
+	Motion2::sampling(/*100,*/&motions);
 
 	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
@@ -256,12 +286,22 @@ int main(int argc, char *argv[])
 			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
 			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
 
-//			cerr <<  rms(before_neigh, current_neigh) << " ";
+			double weight = (1.0 - rms(before_neigh, current_neigh))
+				* map_current.xyToValue((int)current.x, (int)current.y);
+			weights.push_back(weight * m.weight_);
+		}
+		/*
+		for(auto &m: motions) {
+			Pos current = m.move(&from.pos, 1.0);
+
+			vector<double> before_neigh, current_neigh;
+			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
+			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
 
 			double weight = (1.0 - rms(before_neigh, current_neigh))
 				* map_current.xyToValue((int)current.x, (int)current.y);
 			weights.push_back(weight);
-		}
+		}*/
 
 		double sum = reduce(begin(weights), end(weights));
 		int i = 0;
