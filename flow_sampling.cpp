@@ -174,30 +174,6 @@ public:
 	}
 };
 
-class Motion {
-public:
-	double velocity_;
-	double direction_;
-
-	Pos move(Pos *from, double time) {
-		Pos ans;
-		ans.x = from->x + time*this->velocity_*cos(this->direction_);
-		ans.y = from->y + time*this->velocity_*sin(this->direction_);
-		return ans;
-	}
-
-	static void sampling(unsigned int num, vector<Motion> *sample) {
-		double step = M_PI*2/num;
-		double initial_shift = step*uniform_rand();
-
-		const double max_speed = 3.0;
-	
-		for(int i=0; i<num; i++) {
-			sample->push_back({max_speed*uniform_rand(), initial_shift + i*step});
-		}
-	}
-};
-
 class Motion2 {
 public:
 	double dx_;
@@ -216,8 +192,8 @@ public:
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
-				double dx = ix /*+ uniform_rand() - 0.5*/;
-				double dy = iy /*+ uniform_rand() - 0.5*/;
+				double dx = ix + uniform_rand() - 0.5;
+				double dy = iy + uniform_rand() - 0.5;
 				double w = 1.0/sqrt(dx*dx + dy*dy + 1.0);
 				sample->push_back({dx, dy, w});
 			}
