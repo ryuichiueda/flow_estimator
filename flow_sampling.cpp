@@ -29,8 +29,6 @@ struct Particle {
 };
 
 class Map {
-private:
-	vector<uint64_t> data_;
 public:
 	Map() {}
 
@@ -42,6 +40,7 @@ public:
 	unsigned int width_;
 	unsigned int height_;
 	unsigned int depth_;
+	vector<uint64_t> data_;
 
 	void print()
 	{
@@ -174,7 +173,7 @@ public:
 	}
 };
 
-class Motion2 {
+class Motion {
 public:
 	double dx_;
 	double dy_;
@@ -187,7 +186,7 @@ public:
 		return ans;
 	}
 
-	static void sampling(vector<Motion2> *sample) {
+	static void sampling(vector<Motion> *sample) {
 		const int max_speed = 3;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
@@ -249,23 +248,8 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(100, &sample_before);
 
-	/*
-	vector<double> v;
-	v.assign(map_before.height_*map_before.width_, 0.0);
-	for(auto &p: sample_before) {
-		//cerr << (int)floor(p.pos.x) << " "<< (int)floor(p.pos.y) << endl;
-		int pos = map_before.xyToIndex((int)floor(p.pos.x), (int)floor(p.pos.y));
-		v[pos] += 1.0;
-	}
-	for(int y=0;y<map_before.height_;y++) {
-		for(int x=0;x<map_before.width_;x++) {
-			cout << setw(4) << (int)v[x + y*map_before.width_];
-		}
-		cout << endl;
-	}*/
-
-	vector<Motion2> motions;
-	Motion2::sampling(/*100,*/&motions);
+	vector<Motion> motions;
+	Motion::sampling(&motions);
 
 	vector<double> vote(map_before.width_*map_before.height_, 0.0);
 
@@ -308,9 +292,15 @@ int main(int argc, char *argv[])
 	}
 
 	Map ans(map_current.width_, map_current.height_, map_current.depth_);
+	uint64_t all_weights = reduce(begin(map_current.data_), end(map_current.data_));
+	double voted_weight = reduce(begin(vote), end(vote));
+	double w = (double)all_weights/voted_weight;
 	int i = 0;
 	for(double v : vote) {
-		ans.setValue(i++, (int)v);
+		if (v*w < map_current.depth_)
+			ans.setValue(i++, (int)(v*w));
+		else
+			ans.setValue(i++, map_current.depth_);
 	}
 
 	ans.print();
