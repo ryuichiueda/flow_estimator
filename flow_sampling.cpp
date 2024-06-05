@@ -297,17 +297,28 @@ int main(int argc, char *argv[])
 		vector<double> weights;
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
+			double w_center = map_current.xyToValue((int)floor(current.x), (int)floor(current.y));
+			if(w_center == 0){
+				weights.push_back(0.0);
+				continue;
+			}
 
 			vector<double> before_neigh, current_neigh;
 			map_before.getNeighborDistribution((int)floor(from.pos.x), (int)floor(from.pos.y), &before_neigh);
 			map_current.getNeighborDistribution((int)floor(current.x), (int)floor(current.y), &current_neigh);
 
-			double weight = (1.0 - rms(before_neigh, current_neigh))
-				* map_current.xyToValue((int)floor(current.x), (int)floor(current.y));
+			double weight = (1.0 - rms(before_neigh, current_neigh))*w_center;
 			weights.push_back(weight * m.weight_);
 		}
 
 		double sum = reduce(begin(weights), end(weights));
+		if (sum <= 0.000001 ){
+			for(int j=0; j<weights.size(); j++)
+				weights[j] = 1.0;
+
+			sum = (double)weights.size();
+		}
+
 		int i = 0;
 
 		for(auto &m: motions) {
