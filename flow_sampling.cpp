@@ -30,7 +30,7 @@ struct Particle {
 
 class Map {
 private:
-	vector<uint8_t> data_;
+	vector<uint64_t> data_;
 public:
 	Map() {}
 
@@ -89,10 +89,10 @@ public:
 
 	int xyToIndex(int x, int y) {
 		if (x < 0 || x >= this->width_) {
-			return -1;
+			return -10000;
 		}
 		if (y < 0 || y >= this->height_) {
-			return -1;
+			return -10000;
 		}
 	
 		return x + y*this->width_;
@@ -200,14 +200,14 @@ public:
 
 class Motion2 {
 public:
-	int ix_;
-	int iy_;
+	double dx_;
+	double dy_;
 	double weight_;
 
 	Pos move(Pos *from, double time) {
 		Pos ans;
-		ans.x = from->x + time*this->ix_;
-		ans.y = from->y + time*this->iy_;
+		ans.x = from->x + time*this->dx_;
+		ans.y = from->y + time*this->dy_;
 		return ans;
 	}
 
@@ -216,15 +216,16 @@ public:
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
-				double reduce = ix*ix + iy*iy + 1.0;
-				sample->push_back({ix, iy, 1.0/reduce});
-			//	sample->at(sample->size()-1).print();
+				double dx = ix /*+ uniform_rand() - 0.5*/;
+				double dy = iy /*+ uniform_rand() - 0.5*/;
+				double w = 1.0/sqrt(dx*dx + dy*dy + 1.0);
+				sample->push_back({dx, dy, w});
 			}
 		}
 	}
 
 	void print(void){
-		cout << ix_ << " " << iy_ << " " << weight_ << endl;
+		cout << dx_ << " " << dy_ << " " << weight_ << endl;
 	}
 };
 
@@ -272,6 +273,21 @@ int main(int argc, char *argv[])
 	vector<Particle> sample_before;
 	map_before.sampling(100, &sample_before);
 
+	/*
+	vector<double> v;
+	v.assign(map_before.height_*map_before.width_, 0.0);
+	for(auto &p: sample_before) {
+		//cerr << (int)floor(p.pos.x) << " "<< (int)floor(p.pos.y) << endl;
+		int pos = map_before.xyToIndex((int)floor(p.pos.x), (int)floor(p.pos.y));
+		v[pos] += 1.0;
+	}
+	for(int y=0;y<map_before.height_;y++) {
+		for(int x=0;x<map_before.width_;x++) {
+			cout << setw(4) << (int)v[x + y*map_before.width_];
+		}
+		cout << endl;
+	}*/
+
 	vector<Motion2> motions;
 	Motion2::sampling(/*100,*/&motions);
 
@@ -283,34 +299,21 @@ int main(int argc, char *argv[])
 			Pos current = m.move(&from.pos, 1.0);
 
 			vector<double> before_neigh, current_neigh;
-			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
-			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
+			map_before.getNeighborDistribution((int)floor(from.pos.x), (int)floor(from.pos.y), &before_neigh);
+			map_current.getNeighborDistribution((int)floor(current.x), (int)floor(current.y), &current_neigh);
 
 			double weight = (1.0 - rms(before_neigh, current_neigh))
-				* map_current.xyToValue((int)current.x, (int)current.y);
+				* map_current.xyToValue((int)floor(current.x), (int)floor(current.y));
 			weights.push_back(weight * m.weight_);
 		}
-		/*
-		for(auto &m: motions) {
-			Pos current = m.move(&from.pos, 1.0);
-
-			vector<double> before_neigh, current_neigh;
-			map_before.getNeighborDistribution((int)from.pos.x, (int)from.pos.y, &before_neigh);
-			map_current.getNeighborDistribution((int)current.x, (int)current.y, &current_neigh);
-
-			double weight = (1.0 - rms(before_neigh, current_neigh))
-				* map_current.xyToValue((int)current.x, (int)current.y);
-			weights.push_back(weight);
-		}*/
 
 		double sum = reduce(begin(weights), end(weights));
 		int i = 0;
 
 		for(auto &m: motions) {
-			//cerr << weight << " ";
 			Pos after = m.move(&from.pos, 2.0);
-			int pos = map_before.xyToIndex((int)after.x, (int)after.y);
-			if (pos >= 0){
+			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
+			if (pos >= 0 && pos < map_before.width_*map_before.height_){
 				vote[pos] += weights[i]/sum*10;
 			}
 			i++;
