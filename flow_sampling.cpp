@@ -117,12 +117,6 @@ public:
 		int j = 0;
 		for(int i=0;i<num;i++){
 			uint64_t tick = (uint64_t)(i*step + initial_shift);
-	
-			if(tick < accum) {
-				sample->push_back({j, toRandomXyPos(j)});
-				continue;
-			}
-	
 			while(tick >= accum) {
 				j += 1;
 				if (j >= this->data_.size()) {
@@ -131,6 +125,8 @@ public:
 				}
 				accum += this->data_[j];
 			}
+			sample->push_back({j, toRandomXyPos(j)});
+			continue;
 		}
 	}
 
@@ -187,7 +183,7 @@ public:
 	}
 
 	static void sampling(vector<Motion> *sample) {
-		const int max_speed = 3;
+		const int max_speed = 5;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
@@ -257,6 +253,7 @@ int main(int argc, char *argv[])
 		vector<double> weights;
 		for(auto &m: motions) {
 			Pos current = m.move(&from.pos, 1.0);
+
 			double w_center = map_current.xyToValue((int)floor(current.x), (int)floor(current.y));
 			if(w_center == 0){
 				weights.push_back(0.0);
@@ -279,15 +276,17 @@ int main(int argc, char *argv[])
 			sum = (double)weights.size();
 		}
 
-		int i = 0;
 
+		for(int s=2; s<=10; s++){ 
+		int i = 0;
 		for(auto &m: motions) {
-			Pos after = m.move(&from.pos, 2.0);
+			Pos after = m.move(&from.pos, (double)s);
 			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
 			if (pos >= 0 && pos < map_before.width_*map_before.height_){
 				vote[pos] += weights[i]/sum*10;
 			}
 			i++;
+		}
 		}
 	}
 
@@ -297,8 +296,14 @@ int main(int argc, char *argv[])
 	double w = (double)all_weights/voted_weight;
 	int i = 0;
 	for(double v : vote) {
+		/*
 		if (v*w < map_current.depth_)
 			ans.setValue(i++, (int)(v*w));
+		else
+			ans.setValue(i++, map_current.depth_);
+			*/
+		if (v*w < map_current.depth_/20)
+			ans.setValue(i++, 0);
 		else
 			ans.setValue(i++, map_current.depth_);
 	}
