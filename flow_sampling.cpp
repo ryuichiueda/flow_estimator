@@ -86,6 +86,14 @@ public:
 		this->data_[index] = value;
 	}
 
+	void removeFixedObstacle(Map *fixed) {
+		for(int i=0;i<fixed->data_.size();i++) {
+			if(fixed->data_[i] > 128){
+				this->data_[i] = 0;
+			}
+		}
+	}
+
 	int xyToIndex(int x, int y) {
 		if (x < 0 || x >= this->width_) {
 			return -10000;
@@ -222,24 +230,29 @@ double rms(vector<double> &before, vector<double> &current) {
 
 int main(int argc, char *argv[])
 {
-	if(argc != 3) {
+	if(argc != 4) {
 		cerr << "Invalid args" << endl;
 		return 1;
 	}
 
-        Map map_before, map_current;
+        Map map_before, map_current, map_fixed;
 
 	ifstream before(argv[1]);
 	ifstream current(argv[2]);
-	if (not before or not current) {
+	ifstream fixed(argv[3]);
+	if (not before or not current or not fixed) {
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
 
 	if ( not map_before.load_from_pgm(&before) 
-	  or not map_current.load_from_pgm(&current)) {
+	  or not map_current.load_from_pgm(&current) 
+	  or not map_fixed.load_from_pgm(&fixed)) {
 		return 1;
 	}
+
+	map_before.removeFixedObstacle(&map_fixed);
+	map_current.removeFixedObstacle(&map_fixed);
 
 	vector<Particle> sample_before;
 	map_before.sampling(100, &sample_before);
