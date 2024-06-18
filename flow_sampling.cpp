@@ -202,7 +202,7 @@ public:
 	}
 
 	static void sampling(vector<Motion> *sample) {
-		const int max_speed = 5;
+		const int max_speed = 10;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		for(int s=2; s<=10; s++){ 
+		for(double s=2.0; s<=10.0; s+=0.1){ 
 		int i = 0;
 		for(auto &m: motions) {
 			Pos after = m.move(&from.pos, (double)s);
@@ -320,17 +320,7 @@ int main(int argc, char *argv[])
 	double w = (double)all_weights/voted_weight;
 	int i = 0;
 	for(double v : vote) {
-			ans.setValue(i++, (int)(10000*v));
-		/*
-		if (v*w < map_current.depth_)
-			ans.setValue(i++, (int)(v*w));
-		else
-			ans.setValue(i++, map_current.depth_);
-		if (v*w < map_current.depth_/20)
-			ans.setValue(i++, 0);
-		else
-			ans.setValue(i++, map_current.depth_);
-			*/
+		ans.setValue(i++, (int)(10000*v));
 	}
 
 	ans.normalize();
