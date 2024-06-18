@@ -82,6 +82,17 @@ public:
 		return true;
 	}
 
+	void normalize(void) {
+		auto max = 0;
+		for(int i=0; i<this->data_.size(); i++){
+			max = max > data_[i] ? max : data_[i];
+		}
+		for(int i=0; i<this->data_.size(); i++){
+			data_[i] = (int)(255 * data_[i] / max); 
+		}
+	
+	}
+
 	void setValue(int index, int value) {
 		this->data_[index] = value;
 	}
@@ -296,7 +307,7 @@ int main(int argc, char *argv[])
 			Pos after = m.move(&from.pos, (double)s);
 			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
 			if (pos >= 0 && pos < map_before.width_*map_before.height_){
-				vote[pos] += weights[i]/sum*10;
+				vote[pos] += weights[i]/sum;
 			}
 			i++;
 		}
@@ -309,18 +320,20 @@ int main(int argc, char *argv[])
 	double w = (double)all_weights/voted_weight;
 	int i = 0;
 	for(double v : vote) {
+			ans.setValue(i++, (int)(10000*v));
 		/*
 		if (v*w < map_current.depth_)
 			ans.setValue(i++, (int)(v*w));
 		else
 			ans.setValue(i++, map_current.depth_);
-			*/
 		if (v*w < map_current.depth_/20)
 			ans.setValue(i++, 0);
 		else
 			ans.setValue(i++, map_current.depth_);
+			*/
 	}
 
+	ans.normalize();
 	ans.print();
 
 	return 0;
