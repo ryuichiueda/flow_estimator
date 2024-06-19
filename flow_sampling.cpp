@@ -202,7 +202,7 @@ public:
 	}
 
 	static void sampling(vector<Motion> *sample) {
-		const int max_speed = 5;
+		const int max_speed = 10;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
@@ -286,13 +286,11 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			/*
 			vector<double> before_neigh, current_neigh;
 			map_before.getNeighborDistribution((int)floor(from.pos.x), (int)floor(from.pos.y), &before_neigh);
 			map_current.getNeighborDistribution((int)floor(current.x), (int)floor(current.y), &current_neigh);
-			*/
 
-			double weight = /*(1.0 - rms(before_neigh, current_neigh))*/w_center;
+			double weight = (1.0 - rms(before_neigh, current_neigh))*w_center;
 			weights.push_back(weight * m.weight_);
 		}
 
@@ -308,10 +306,7 @@ int main(int argc, char *argv[])
 		for(auto &m: motions) {
 			Pos after = m.move(&from.pos, 2.0);
 			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
-			/*
-			if (pos >= 0 && pos < map_before.width_*map_before.height_){
-				vote[pos] += weights[i]/sum;
-			}*/
+			weights[i] *= map_verify.data_[pos];
 			i++;
 		}
 
@@ -322,7 +317,8 @@ int main(int argc, char *argv[])
 				Pos after = m.move(&from.pos, (double)s);
 				int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
 				if (pos >= 0 && pos < map_before.width_*map_before.height_){
-					vote[pos] += weights[i]/sum;
+					if (vote[pos] < weights[i]/sum)
+						vote[pos] += weights[i]/sum;
 				}
 				i++;
 			}
