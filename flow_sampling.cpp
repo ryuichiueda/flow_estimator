@@ -202,7 +202,7 @@ public:
 	}
 
 	static void sampling(vector<Motion> *sample) {
-		const int max_speed = 10;
+		const int max_speed = 5;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
@@ -241,23 +241,25 @@ double rms(vector<double> &before, vector<double> &current) {
 
 int main(int argc, char *argv[])
 {
-	if(argc != 4) {
+	if(argc != 5) {
 		cerr << "Invalid args" << endl;
 		return 1;
 	}
 
-        Map map_before, map_current, map_fixed;
+        Map map_before, map_current, map_verify, map_fixed;
 
 	ifstream before(argv[1]);
 	ifstream current(argv[2]);
-	ifstream fixed(argv[3]);
-	if (not before or not current or not fixed) {
+	ifstream verify(argv[3]);
+	ifstream fixed(argv[4]);
+	if (not before or not current or not verify or not fixed) {
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
 
 	if ( not map_before.load_from_pgm(&before) 
 	  or not map_current.load_from_pgm(&current) 
+	  or not map_verify.load_from_pgm(&verify) 
 	  or not map_fixed.load_from_pgm(&fixed)) {
 		return 1;
 	}
@@ -284,11 +286,13 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
+			/*
 			vector<double> before_neigh, current_neigh;
 			map_before.getNeighborDistribution((int)floor(from.pos.x), (int)floor(from.pos.y), &before_neigh);
 			map_current.getNeighborDistribution((int)floor(current.x), (int)floor(current.y), &current_neigh);
+			*/
 
-			double weight = (1.0 - rms(before_neigh, current_neigh))*w_center;
+			double weight = /*(1.0 - rms(before_neigh, current_neigh))*/w_center;
 			weights.push_back(weight * m.weight_);
 		}
 
@@ -300,17 +304,28 @@ int main(int argc, char *argv[])
 			sum = (double)weights.size();
 		}
 
-
-		for(double s=2.0; s<=10.0; s+=0.1){ 
 		int i = 0;
 		for(auto &m: motions) {
-			Pos after = m.move(&from.pos, (double)s);
+			Pos after = m.move(&from.pos, 2.0);
 			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
+			/*
 			if (pos >= 0 && pos < map_before.width_*map_before.height_){
 				vote[pos] += weights[i]/sum;
-			}
+			}*/
 			i++;
 		}
+
+
+		for(double s=2.0; s<=10.0; s+=0.1){ 
+			int i = 0;
+			for(auto &m: motions) {
+				Pos after = m.move(&from.pos, (double)s);
+				int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
+				if (pos >= 0 && pos < map_before.width_*map_before.height_){
+					vote[pos] += weights[i]/sum;
+				}
+				i++;
+			}
 		}
 	}
 
