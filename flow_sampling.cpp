@@ -242,7 +242,15 @@ double rms(vector<double> &before, vector<double> &current) {
 
 int main(int argc, char *argv[])
 {
-	for(int i=1;i<argc;i++) {
+	ifstream fixed(argv[1]);
+	ifstream origin(argv[2]);
+	if (not fixed or not origin) {
+		cerr << "Invalid files" << endl;
+		return 1;
+	}
+
+
+	for(int i=3;i<argc;i++) {
 		cout << argv[i] << endl;
 	}	
 	/*
