@@ -1,5 +1,9 @@
 #!/bin/bash
 
-g++ ./flow_sampling.cpp
+g++ -O2 -std=c++17 ./flow_sampling.cpp
 
-time ./a.out <(cat $1 |sed 's/#.*//') <(cat $2 |sed 's/#.*//')
+fix=./pgm_52_57/fixed.pgm
+from=./pgm_52_57/1717995207.125090281.pgm
+to=./pgm_52_57/1717995207.625553676.pgm
+
+./a.out $fix $from $to

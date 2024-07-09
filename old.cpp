@@ -242,10 +242,6 @@ double rms(vector<double> &before, vector<double> &current) {
 
 int main(int argc, char *argv[])
 {
-	for(int i=1;i<argc;i++) {
-		cout << argv[i] << endl;
-	}	
-	/*
 	if(argc != 5) {
 		cerr << "Invalid args" << endl;
 		return 1;
@@ -342,6 +338,5 @@ int main(int argc, char *argv[])
 	ans.normalize();
 	ans.print();
 
-	*/
 	return 0;
 }
