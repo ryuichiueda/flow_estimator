@@ -208,7 +208,8 @@ public:
 			for(int iy=-max_speed; iy<=max_speed; iy++){
 				double dx = ix + uniform_rand() - 0.5;
 				double dy = iy + uniform_rand() - 0.5;
-				double w = 1.0/sqrt(dx*dx + dy*dy + 1.0);
+				//double w = 1.0/sqrt(dx*dx + dy*dy + 1.0);
+				double w = 1.0;///sqrt(dx*dx + dy*dy + 1.0);
 				sample->push_back({dx, dy, w});
 			}
 		}
@@ -311,7 +312,7 @@ int main(int argc, char *argv[])
 		}
 
 
-		for(double s=2.0; s<=10.0; s+=0.1){ 
+		for(double s=2.0; s<=10.0; s+=0.1){
 			int i = 0;
 			for(auto &m: motions) {
 				Pos after = m.move(&from.pos, (double)s);
