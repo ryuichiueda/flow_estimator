@@ -25,7 +25,7 @@ struct Pos {
 
 struct Particle {
 	int index;
-	Pos pos;
+//	Pos pos;
 };
 
 class Map {
@@ -144,7 +144,8 @@ public:
 				}
 				accum += this->data_[j];
 			}
-			sample->push_back({j, toRandomXyPos(j)});
+			//sample->push_back({j, toRandomXyPos(j)});
+			sample->push_back({j});
 			continue;
 		}
 	}
@@ -240,6 +241,9 @@ double rms(vector<double> &before, vector<double> &current) {
 	return sqrt(square_sum/before.size());
 }
 
+void one_step(Map &origin) {
+}
+
 int main(int argc, char *argv[])
 {
 	ifstream fixed(argv[1]);
@@ -254,10 +258,16 @@ int main(int argc, char *argv[])
 		cerr << "Cannot load image" << endl;
 		return 1;
 	}
+	map_origin.removeFixedObstacle(&map_fixed);
+	vector<Particle> sample_origin;
+	map_origin.sampling(100, &sample_origin);
 
 
 	for(int i=3;i<argc;i++) {
-		cout << argv[i] << endl;
+		ifstream ifs(argv[i]);
+        	Map map_update;
+		map_update.load_from_pgm(&ifs);
+
 	}	
 	/*
 	if(argc != 5) {
