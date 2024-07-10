@@ -333,22 +333,32 @@ int main(int argc, char *argv[])
 		map_update.removeFixedObstacle(&map_fixed);
 
 		vector<int> new_partciles;
-
-		/*
-		for(auto p: particles)
-			cout << p << " ";
-		cout << endl;
-		*/
 		one_step(map_update, trajs);
-		/*
-		for(auto p: particles)
-			cout << p << " ";
-		cout << endl;
-		*/
-
-		for(auto &t: trajs)
-		       t.print();	
 	}	
+
+	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
+
+	for(auto &t: trajs) {
+	//       t.print();	
+
+	       int len = t.indexes.size();
+	       PosIndex *org = &t.indexes[0];
+	       PosIndex *last = &t.indexes.back();
+
+	       int dx = last->x - org->x;
+	       int dy = last->y - org->y;
+
+	       int new_x = last->x + dx;
+	       int new_y = last->y + dy;
+
+	       int index = ans.xyToIndex(new_x, new_y);
+	       if(index < 0)
+		       continue;
+
+	       ans.data_[index] = 255;
+	}
+	ans.print();
+
 	/*
 
 	Map ans(map_current.width_, map_current.height_, map_current.depth_);
@@ -361,7 +371,6 @@ int main(int argc, char *argv[])
 	}
 
 	ans.normalize();
-	ans.print();
 
 	*/
 	return 0;
