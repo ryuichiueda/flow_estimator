@@ -267,6 +267,7 @@ int main(int argc, char *argv[])
 		ifstream ifs(argv[i]);
         	Map map_update;
 		map_update.load_from_pgm(&ifs);
+		map_update.removeFixedObstacle(&map_fixed);
 
 	}	
 	/*
