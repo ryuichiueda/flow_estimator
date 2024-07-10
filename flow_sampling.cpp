@@ -28,8 +28,16 @@ struct PosIndex {
 	int y;
 };
 
-struct Trajectory {
+class Trajectory {
+public:
 	vector<PosIndex> indexes;
+
+	void print(void) {
+		for(auto &p : indexes ){
+			cout << "(" << p.x << ", " << p.y << ") ->";
+		}
+		cout << endl;
+	}
 };
 
 class Map {
@@ -120,15 +128,12 @@ public:
 		return x + y*this->width_;
 	}
 
-	int chooseNextPos(int index) {
-		int x = index % this->width_;
-		int y = index / this->width_;
-
+	PosIndex chooseNextPos(PosIndex index) {
 		const int window = 3;
 		vector<int> cands;
 		vector<int> cands_all;
-		for(int iy=-window+y;iy<=y+window;iy++){
-			for(int ix=-window+x;ix<=x+window;ix++){
+		for(int iy=-window+index.y;iy<=index.y+window;iy++){
+			for(int ix=-window+index.x;ix<=index.x+window;ix++){
 				int i = xyToIndex(ix, iy);
 
 				if(i < 0)
@@ -140,14 +145,17 @@ public:
 			}
 		}
 
+		int chosen;
 		vector<int> result;
 		if(cands.size() == 0){
 			int pos = (int)(uniform_rand()*cands_all.size());
-			return cands_all[pos];
+			chosen = cands_all[pos];
 		}else{
 			int pos = (int)(uniform_rand()*cands.size());
-			return cands[pos];
+			chosen = cands[pos];
 		}
+
+		return { (int)(chosen % this->width_), (int)(chosen / this->width_)};
 	}
 
 	Pos toRandomXyPos(int pos_on_data) {
@@ -280,16 +288,16 @@ public:
 	}
 };
 
-void one_step(Map &map, vector<int> &particles, vector<int> &new_particles) {
+void one_step(Map &map, vector<Trajectory> &particles) {
 	for(auto &p : particles){
 		//int before_x = p % map.width_;
 		//int before_y = p / map.width_;
 
-		int after = map.chooseNextPos(p);
+		PosIndex after = map.chooseNextPos(p.indexes.back());
 		//int after_x = after % map.width_;
 		//int after_y = after / map.width_;
 
-		new_particles.push_back(after);
+		p.indexes.push_back(after);
 	}
 }
 
@@ -312,11 +320,11 @@ int main(int argc, char *argv[])
 	map_origin.samplingXY(100, &particles);
 
 	vector<Trajectory> trajs;
-	for(auto &p: particles)
-		trajs.push_back(p);
-
-	vector<vector<int>> trajectories;
-	trajectories.push_back(particles);
+	for(auto &p: particles){
+		Trajectory tmp;
+		tmp.indexes.push_back(p);
+		trajs.push_back(tmp);
+	}
 
 	for(int i=3;i<argc;i++) {
 		ifstream ifs(argv[i]);
@@ -331,14 +339,15 @@ int main(int argc, char *argv[])
 			cout << p << " ";
 		cout << endl;
 		*/
-		one_step(map_update, trajectories.back(), new_partciles);
-		trajectories.push_back(new_partciles);
+		one_step(map_update, trajs);
 		/*
 		for(auto p: particles)
 			cout << p << " ";
 		cout << endl;
 		*/
 
+		for(auto &t: trajs)
+		       t.print();	
 	}	
 	/*
 
