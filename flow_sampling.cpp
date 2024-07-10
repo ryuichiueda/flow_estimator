@@ -280,8 +280,9 @@ void one_step(Map &map, vector<int> &particles) {
 		int after_x = after % map.width_;
 		int after_y = after / map.width_;
 
-		cout << "(" << before_x << ", " << before_y << ") ->"
-		     << "(" << after_x << ", " << after_y << ")" << endl;
+	//	cout << "(" << before_x << ", " << before_y << ") ->"
+	//	     << "(" << after_x << ", " << after_y << ")" << endl;
+		p = after;
 	}
 }
 
@@ -310,7 +311,13 @@ int main(int argc, char *argv[])
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
 
+		for(auto p: particles)
+			cout << p << " ";
+		cout << endl;
 		one_step(map_update, particles);
+		for(auto p: particles)
+			cout << p << " ";
+		cout << endl;
 
 	}	
 	/*
