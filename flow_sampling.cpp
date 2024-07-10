@@ -308,8 +308,12 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	map_origin.removeFixedObstacle(&map_fixed);
-	vector<int> particles;
-	map_origin.sampling(100, &particles);
+	vector<PosIndex> particles;
+	map_origin.samplingXY(100, &particles);
+
+	vector<Trajectory> trajs;
+	for(auto &p: particles)
+		trajs.push_back(p);
 
 	vector<vector<int>> trajectories;
 	trajectories.push_back(particles);
