@@ -248,6 +248,12 @@ int main(int argc, char *argv[])
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
+        Map map_fixed, map_origin;
+	if ( not map_fixed.load_from_pgm(&fixed) 
+	  or not map_origin.load_from_pgm(&origin) ){
+		cerr << "Cannot load image" << endl;
+		return 1;
+	}
 
 
 	for(int i=3;i<argc;i++) {
