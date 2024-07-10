@@ -116,6 +116,36 @@ public:
 		return x + y*this->width_;
 	}
 
+	int chooseNextPos(int index) {
+		int x = index % this->width_;
+		int y = index / this->width_;
+
+		const int window = 3;
+		vector<int> cands;
+		vector<int> cands_all;
+		for(int iy=-window+y;iy<=y+window;iy++){
+			for(int ix=-window+x;ix<=x+window;ix++){
+				int i = xyToIndex(ix, iy);
+
+				if(i < 0)
+					continue;
+				
+				cands_all.push_back(i);
+				if(this->data_[i] > 0)
+					cands.push_back(i);
+			}
+		}
+
+		vector<int> result;
+		if(cands.size() == 0){
+			int pos = (int)(uniform_rand()*cands_all.size());
+			return cands_all[pos];
+		}else{
+			int pos = (int)(uniform_rand()*cands.size());
+			return cands[pos];
+		}
+	}
+
 	Pos toRandomXyPos(int pos_on_data) {
 		int x = pos_on_data % this->width_;
 		int y = pos_on_data / this->width_;
@@ -127,7 +157,7 @@ public:
 		return ans;
 	}
 
-	void sampling(unsigned int num, vector<Particle> *sample)
+	void sampling(unsigned int num, vector<int> *sample)
 	{
 		uint64_t sum = reduce(begin(this->data_), end(this->data_));
 		double step = (double)sum/num;
@@ -145,7 +175,7 @@ public:
 				accum += this->data_[j];
 			}
 			//sample->push_back({j, toRandomXyPos(j)});
-			sample->push_back({j});
+			sample->push_back(j);
 			continue;
 		}
 	}
@@ -241,7 +271,18 @@ double rms(vector<double> &before, vector<double> &current) {
 	return sqrt(square_sum/before.size());
 }
 
-void one_step(Map &origin) {
+void one_step(Map &map, vector<int> &particles) {
+	for(auto &p : particles){
+		int before_x = p % map.width_;
+		int before_y = p / map.width_;
+
+		int after = map.chooseNextPos(p);
+		int after_x = after % map.width_;
+		int after_y = after / map.width_;
+
+		cout << "(" << before_x << ", " << before_y << ") ->"
+		     << "(" << after_x << ", " << after_y << ")" << endl;
+	}
 }
 
 int main(int argc, char *argv[])
@@ -259,8 +300,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	map_origin.removeFixedObstacle(&map_fixed);
-	vector<Particle> sample_origin;
-	map_origin.sampling(100, &sample_origin);
+	vector<int> particles;
+	map_origin.sampling(100, &particles);
 
 
 	for(int i=3;i<argc;i++) {
@@ -268,6 +309,8 @@ int main(int argc, char *argv[])
         	Map map_update;
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
+
+		one_step(map_update, particles);
 
 	}	
 	/*
