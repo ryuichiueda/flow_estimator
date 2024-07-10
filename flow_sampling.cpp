@@ -23,11 +23,6 @@ struct Pos {
 	double y;
 };
 
-struct Particle {
-	int index;
-//	Pos pos;
-};
-
 class Map {
 public:
 	Map() {}
@@ -251,38 +246,16 @@ public:
 	}
 };
 
-double kld(vector<double> &before, vector<double> &current) {
-	double ans = 0.0;
-	for(int i=0; i<before.size(); i++) {
-		if (before[i] < 0.0 || current[i] < 0.0)
-			continue;
-			
-		ans += current[i]*(log(current[i]) - log(before[i]));
-	}
-	return ans;
-}
-
-double rms(vector<double> &before, vector<double> &current) {
-	double square_sum = 0.0;
-	for(int i=0; i<before.size(); i++) {
-		double diff = current[i] - before[i];
-		square_sum += diff*diff;
-	}
-	return sqrt(square_sum/before.size());
-}
-
-void one_step(Map &map, vector<int> &particles) {
+void one_step(Map &map, vector<int> &particles, vector<int> &new_particles) {
 	for(auto &p : particles){
-		int before_x = p % map.width_;
-		int before_y = p / map.width_;
+		//int before_x = p % map.width_;
+		//int before_y = p / map.width_;
 
 		int after = map.chooseNextPos(p);
-		int after_x = after % map.width_;
-		int after_y = after / map.width_;
+		//int after_x = after % map.width_;
+		//int after_y = after / map.width_;
 
-	//	cout << "(" << before_x << ", " << before_y << ") ->"
-	//	     << "(" << after_x << ", " << after_y << ")" << endl;
-		p = after;
+		new_particles.push_back(after);
 	}
 }
 
@@ -304,6 +277,8 @@ int main(int argc, char *argv[])
 	vector<int> particles;
 	map_origin.sampling(100, &particles);
 
+	vector<vector<int>> trajectories;
+	trajectories.push_back(particles);
 
 	for(int i=3;i<argc;i++) {
 		ifstream ifs(argv[i]);
@@ -311,99 +286,23 @@ int main(int argc, char *argv[])
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
 
+		vector<int> new_partciles;
+
+		/*
 		for(auto p: particles)
 			cout << p << " ";
 		cout << endl;
-		one_step(map_update, particles);
+		*/
+		one_step(map_update, trajectories.back(), new_partciles);
+		trajectories.push_back(new_partciles);
+		/*
 		for(auto p: particles)
 			cout << p << " ";
 		cout << endl;
+		*/
 
 	}	
 	/*
-	if(argc != 5) {
-		cerr << "Invalid args" << endl;
-		return 1;
-	}
-
-        Map map_before, map_current, map_verify, map_fixed;
-
-	ifstream before(argv[1]);
-	ifstream current(argv[2]);
-	ifstream verify(argv[3]);
-	ifstream fixed(argv[4]);
-	if (not before or not current or not verify or not fixed) {
-		cerr << "Invalid files" << endl;
-		return 1;
-	}
-
-	if ( not map_before.load_from_pgm(&before) 
-	  or not map_current.load_from_pgm(&current) 
-	  or not map_verify.load_from_pgm(&verify) 
-	  or not map_fixed.load_from_pgm(&fixed)) {
-		return 1;
-	}
-
-	map_before.removeFixedObstacle(&map_fixed);
-	map_current.removeFixedObstacle(&map_fixed);
-
-	vector<Particle> sample_before;
-	map_before.sampling(100, &sample_before);
-
-	vector<Motion> motions;
-	Motion::sampling(&motions);
-
-	vector<double> vote(map_before.width_*map_before.height_, 0.0);
-
-	for(auto &from: sample_before) {
-		vector<double> weights;
-		for(auto &m: motions) {
-			Pos current = m.move(&from.pos, 1.0);
-
-			double w_center = map_current.xyToValue((int)floor(current.x), (int)floor(current.y));
-			if(w_center == 0){
-				weights.push_back(0.0);
-				continue;
-			}
-
-			vector<double> before_neigh, current_neigh;
-			map_before.getNeighborDistribution((int)floor(from.pos.x), (int)floor(from.pos.y), &before_neigh);
-			map_current.getNeighborDistribution((int)floor(current.x), (int)floor(current.y), &current_neigh);
-
-			double weight = (1.0 - rms(before_neigh, current_neigh))*w_center;
-			weights.push_back(weight * m.weight_);
-		}
-
-		double sum = reduce(begin(weights), end(weights));
-		if (sum <= 0.000001 ){
-			for(int j=0; j<weights.size(); j++)
-				weights[j] = 1.0;
-
-			sum = (double)weights.size();
-		}
-
-		int i = 0;
-		for(auto &m: motions) {
-			Pos after = m.move(&from.pos, 2.0);
-			int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
-			weights[i] *= map_verify.data_[pos];
-			i++;
-		}
-
-
-		for(double s=2.0; s<=10.0; s+=0.1){
-			int i = 0;
-			for(auto &m: motions) {
-				Pos after = m.move(&from.pos, (double)s);
-				int pos = map_before.xyToIndex((int)floor(after.x), (int)floor(after.y));
-				if (pos >= 0 && pos < map_before.width_*map_before.height_){
-					if (vote[pos] < weights[i]/sum)
-						vote[pos] += weights[i]/sum;
-				}
-				i++;
-			}
-		}
-	}
 
 	Map ans(map_current.width_, map_current.height_, map_current.depth_);
 	uint64_t all_weights = reduce(begin(map_current.data_), end(map_current.data_));
