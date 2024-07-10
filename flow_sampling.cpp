@@ -23,6 +23,15 @@ struct Pos {
 	double y;
 };
 
+struct PosIndex {
+	int x;
+	int y;
+};
+
+struct Trajectory {
+	vector<PosIndex> indexes;
+};
+
 class Map {
 public:
 	Map() {}
@@ -171,6 +180,31 @@ public:
 			}
 			//sample->push_back({j, toRandomXyPos(j)});
 			sample->push_back(j);
+			continue;
+		}
+	}
+
+	void samplingXY(unsigned int num, vector<PosIndex> *sample)
+	{
+		uint64_t sum = reduce(begin(this->data_), end(this->data_));
+		double step = (double)sum/num;
+		double initial_shift = step*uniform_rand();
+		uint64_t accum = this->data_[0];
+		int j = 0;
+		for(int i=0;i<num;i++){
+			uint64_t tick = (uint64_t)(i*step + initial_shift);
+			while(tick >= accum) {
+				j += 1;
+				if (j >= this->data_.size()) {
+					cerr << "Overflow at sampling" << endl;
+					exit(1);
+				}
+				accum += this->data_[j];
+			}
+
+			int x = j  % this->width_;
+			int y = j  / this->width_;
+			sample->push_back({x, y});
 			continue;
 		}
 	}
