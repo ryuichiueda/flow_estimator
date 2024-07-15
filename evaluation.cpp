@@ -106,13 +106,19 @@ public:
 	}
 
 	void compare(Map *ref) {
-		vector<int> diff;
-		for(int i=0; i<this->data_.size(); i++){
-			diff.push_back( (int)this->data_[i] - (int)ref->data_[i] );
-		}
+		cout << "P3" << endl;
+		cout << width_ << " " << height_ << endl;
+		cout << depth_ << endl;
 
 		for(int i=0; i<this->data_.size(); i++){
-			cout << diff[i] << " ";
+			if(this->data_[i] == 255 && ref->data_[i] == 0 )
+				cout << "0 255 0 ";
+			else if(this->data_[i] == 0 && ref->data_[i] == 255 )
+				cout << "255 0 0 ";
+			else if(this->data_[i] == 255 && ref->data_[i] == 255 )
+				cout << "0 0 255 ";
+			else
+				cout << "127 127 127 ";
 		}
 		cout << endl;
 	}
