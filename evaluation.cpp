@@ -105,6 +105,18 @@ public:
 	
 	}
 
+	void compare(Map *ref) {
+		vector<int> diff;
+		for(int i=0; i<this->data_.size(); i++){
+			diff.push_back( (int)this->data_[i] - (int)ref->data_[i] );
+		}
+
+		for(int i=0; i<this->data_.size(); i++){
+			cout << diff[i] << " ";
+		}
+		cout << endl;
+	}
+
 	void setValue(int index, int value) {
 		this->data_[index] = value;
 	}
@@ -304,60 +316,24 @@ void one_step(Map &map, vector<Trajectory> &particles) {
 int main(int argc, char *argv[])
 {
 	ifstream fixed(argv[1]);
-	ifstream origin(argv[2]);
-	if (not fixed or not origin) {
+	ifstream ans(argv[2]);
+	ifstream estimation(argv[3]);
+
+	if (not fixed or not ans or not estimation) {
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
-        Map map_fixed, map_origin;
+
+        Map map_fixed, map_ans, map_estimation;
 	if ( not map_fixed.load_from_pgm(&fixed) 
-	  or not map_origin.load_from_pgm(&origin) ){
+	  or not map_ans.load_from_pgm(&ans)
+	  or not map_estimation.load_from_pgm(&estimation) ) {
 		cerr << "Cannot load image" << endl;
 		return 1;
 	}
-	map_origin.removeFixedObstacle(&map_fixed);
-	vector<PosIndex> particles;
-	map_origin.samplingXY(100, &particles);
 
-	vector<Trajectory> trajs;
-	for(auto &p: particles){
-		Trajectory tmp;
-		tmp.indexes.push_back(p);
-		trajs.push_back(tmp);
-	}
-
-	for(int i=3;i<argc;i++) {
-		ifstream ifs(argv[i]);
-        	Map map_update;
-		map_update.load_from_pgm(&ifs);
-		map_update.removeFixedObstacle(&map_fixed);
-
-		vector<int> new_partciles;
-		one_step(map_update, trajs);
-	}	
-
-	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
-
-	for(auto &t: trajs) {
-	//       t.print();	
-
-	       int len = t.indexes.size();
-	       PosIndex *org = &t.indexes[0];
-	       PosIndex *last = &t.indexes.back();
-
-	       int dx = (last->x - org->x)*5/4;
-	       int dy = (last->y - org->y)*5/4;
-
-	       int new_x = last->x + dx;
-	       int new_y = last->y + dy;
-
-	       int index = ans.xyToIndex(new_x, new_y);
-	       if(index < 0)
-		       continue;
-
-	       ans.data_[index] = 255;
-	}
-	ans.print();
+	map_ans.removeFixedObstacle(&map_fixed);
+	map_estimation.compare(&map_ans);
 
 	return 0;
 }
