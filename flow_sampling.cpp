@@ -345,13 +345,13 @@ int main(int argc, char *argv[])
 	       PosIndex *org = &t.indexes[0];
 	       PosIndex *last = &t.indexes.back();
 
-	       org->x = uniform_rand() - 0.5;
-	       org->y = uniform_rand() - 0.5;
-	       last->x = uniform_rand() - 0.5;
-	       last->y = uniform_rand() - 0.5;
+	       double org_x = org->x + uniform_rand() - 0.5;
+	       double org_y = org->y + uniform_rand() - 0.5;
+	       double last_x = last->x + uniform_rand() - 0.5;
+	       double last_y = last->y + uniform_rand() - 0.5;
 
-	       int dx = (last->x - org->x)*5/4;
-	       int dy = (last->y - org->y)*5/4;
+	       int dx = (int)((last_x - org_x)*5/4);
+	       int dy = (int)((last_y - org_y)*5/4);
 
 	       int new_x = last->x + dx;
 	       int new_y = last->y + dy;
