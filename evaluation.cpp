@@ -133,9 +133,14 @@ public:
 		cout << width_ << " " << height_ << endl;
 		cout << depth_ << endl;
 
+		vector<int> distance;
+		int estimated_pos_num = 0;
 		for(int i=0; i<this->data_.size(); i++){
 			if (ref->data_[i] == 255) {
-				distance_to_nearest(i, 5);
+				distance.push_back( distance_to_nearest(i, 5) );
+			}
+			if (this->data_[i] == 255) {
+				estimated_pos_num++;
 			}
 
 			if(this->data_[i] == 255 && ref->data_[i] == 0 )
@@ -148,6 +153,14 @@ public:
 				cout << "127 127 127 ";
 		}
 		cout << endl;
+
+		cerr << "estimated position num: " << estimated_pos_num << endl;
+		cerr << "error (manhattan distance): ";
+		for(auto d: distance){
+			cerr << d << " ";
+		}
+
+		cerr << endl;
 	}
 
 	void setValue(int index, int value) {

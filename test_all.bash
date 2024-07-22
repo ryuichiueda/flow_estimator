@@ -16,7 +16,7 @@ while read a b c d e ref ; do
 	time ./a.out $fix $a $b $c $d $e > ./ans/estm.$(basename $ref)
 	convert $a $b $c $d $e ./ans/estm.$(basename $ref) ./ans/out.gif
 	convert -scale 400% -delay 100 ./ans/out.gif ./ans/estm.$(basename $ref).gif
-	./evaluation $fix $ref ./ans/estm.$(basename $ref) > ./ans/out.ppm
+	./evaluation $fix $ref ./ans/estm.$(basename $ref) > ./ans/out.ppm 2> ./ans/$(basename $ref).result.txt
 	convert -scale 400% ./ans/out.ppm ./ans/diff.$(basename $ref).ppm
 done
 
