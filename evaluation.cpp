@@ -105,12 +105,39 @@ public:
 	
 	}
 
+	int distance_to_nearest(int index, int cutoff) {
+		int x = index % this->width_;
+		int y = index / this->width_;
+
+		int min = cutoff+1;
+		for(int ix=x-cutoff; ix<=x+cutoff; ix++){
+			for(int iy=y-cutoff; iy<=y+cutoff; iy++) {
+				int i = ix + iy*this->width_;
+
+				if(i >= this->data_.size())
+					continue;
+
+				if(this->data_[i] == 255) {
+					int manhattan = abs(x-ix) + abs(y-iy);
+					if(manhattan < min)
+						min = manhattan;
+				}
+			}
+		}
+
+		return min;
+	}
+
 	void compare(Map *ref) {
 		cout << "P3" << endl;
 		cout << width_ << " " << height_ << endl;
 		cout << depth_ << endl;
 
 		for(int i=0; i<this->data_.size(); i++){
+			if (ref->data_[i] == 255) {
+				distance_to_nearest(i, 5);
+			}
+
 			if(this->data_[i] == 255 && ref->data_[i] == 0 )
 				cout << "0 255 0 ";
 			else if(this->data_[i] == 0 && ref->data_[i] == 255 )
