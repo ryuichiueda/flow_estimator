@@ -137,7 +137,7 @@ public:
 		int estimated_pos_num = 0;
 		for(int i=0; i<this->data_.size(); i++){
 			if (ref->data_[i] == 255) {
-				distance.push_back( distance_to_nearest(i, 5) );
+				distance.push_back( distance_to_nearest(i, 10) );
 			}
 			if (this->data_[i] == 255) {
 				estimated_pos_num++;
