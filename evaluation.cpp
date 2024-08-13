@@ -137,7 +137,7 @@ public:
 		int estimated_pos_num = 0;
 		for(int i=0; i<this->data_.size(); i++){
 			if (ref->data_[i] == 255) {
-				distance.push_back( distance_to_nearest(i, 5) );
+				distance.push_back( distance_to_nearest(i, 10) );
 			}
 			if (this->data_[i] == 255) {
 				estimated_pos_num++;
@@ -227,6 +227,7 @@ public:
 		return ans;
 	}
 
+	/*
 	void sampling(unsigned int num, vector<int> *sample)
 	{
 		uint64_t sum = reduce(begin(this->data_), end(this->data_));
@@ -248,7 +249,7 @@ public:
 			sample->push_back(j);
 			continue;
 		}
-	}
+	}*/
 
 	void samplingXY(unsigned int num, vector<PosIndex> *sample)
 	{
