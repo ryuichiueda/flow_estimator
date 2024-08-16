@@ -347,31 +347,31 @@ int main(int argc, char *argv[])
 
 	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
 
-	for(auto &t: trajs) {
-	       int len = t.indexes.size();
+	for(auto &traj: trajs) {
+	       int len = traj.indexes.size();
 
-	       for(int i=0;i<len-1;i++){
-		       PosIndex *org = &t.indexes[i];
-		       PosIndex *to = &t.indexes[len-1];
-	
-		       double org_x = org->x + uniform_rand() - 0.5;
-		       double org_y = org->y + uniform_rand() - 0.5;
-		       double to_x = to->x + uniform_rand() - 0.5;
-		       double to_y = to->y + uniform_rand() - 0.5;
-	
-		       int dx = (int)((to_x - org_x)*target_time/((len-1-i)*skip));
-		       int dy = (int)((to_y - org_y)*target_time/((len-1-i)*skip));
-	
-		       int new_x = to->x + dx;
-		       int new_y = to->y + dy;
-	
-		       int index = ans.xyToIndex(new_x, new_y);
-		       if(index < 0)
-			       continue;
-	
-		       ans.data_[index] = 255;
-	       }
-	}
+	       PosIndex *org = &traj.indexes[0];
+	       PosIndex *mid = &traj.indexes[2];
+	       PosIndex *to = &traj.indexes[len-1];
+
+	       double org_x = org->x + uniform_rand() - 0.5;
+	       double org_y = org->y + uniform_rand() - 0.5;
+	       double mid_x = mid->x + uniform_rand() - 0.5;
+	       double mid_y = mid->y + uniform_rand() - 0.5;
+	       double to_x = to->x + uniform_rand() - 0.5;
+	       double to_y = to->y + uniform_rand() - 0.5;
+
+	       double t = target_time/((len-1)*skip) + 1.0;
+
+	       double new_x = (1-t)*(1-t)*org_x + 2*(1-t)*t*mid_x + t*t*to_x;
+	       double new_y = (1-t)*(1-t)*org_y + 2*(1-t)*t*mid_y + t*t*to_y;
+
+	       int index = ans.xyToIndex((int)new_x, (int)new_y);
+	       if(index < 0)
+		       continue;
+
+	       ans.data_[index] = 255;
+}
 	ans.print();
 
 	return 0;
