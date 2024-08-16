@@ -369,8 +369,9 @@ int main(int argc, char *argv[])
 	       if(index < 0)
 		       continue;
 
-	       ans.data_[index] = 255;
+	       ans.data_[index] += 1;
 	}
+	ans.normalize();
 	ans.print();
 
 	return 0;

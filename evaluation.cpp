@@ -117,7 +117,7 @@ public:
 				if(i >= this->data_.size())
 					continue;
 
-				if(this->data_[i] == 255) {
+				if(this->data_[i] > 0) {
 					int manhattan = abs(x-ix) + abs(y-iy);
 					if(manhattan < min)
 						min = manhattan;
@@ -139,15 +139,15 @@ public:
 			if (ref->data_[i] == 255) {
 				distance.push_back( distance_to_nearest(i, 10) );
 			}
-			if (this->data_[i] == 255) {
+			if (this->data_[i] > 0) {
 				estimated_pos_num++;
 			}
 
-			if(this->data_[i] == 255 && ref->data_[i] == 0 )
-				cout << "0 255 0 ";
+			if(this->data_[i] > 0 && ref->data_[i] == 0 )
+				cout << "0 " << this->data_[i] << " 0 ";
 			else if(this->data_[i] == 0 && ref->data_[i] == 255 )
 				cout << "255 0 0 ";
-			else if(this->data_[i] == 255 && ref->data_[i] == 255 )
+			else if(this->data_[i] > 0 && ref->data_[i] == 255 )
 				cout << "0 0 255 ";
 			else
 				cout << "127 127 127 ";
