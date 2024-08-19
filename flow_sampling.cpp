@@ -99,7 +99,17 @@ public:
 		for(int i=0; i<this->data_.size(); i++){
 			max = max > data_[i] ? max : data_[i];
 		}
+
+		if(max == 0)
+			return;
+		
 		for(int i=0; i<this->data_.size(); i++){
+			/*
+			if(data_[i] < 3){
+				data_[i] = 0;
+				continue; 
+			}*/
+
 			data_[i] = (int)(255 * data_[i] / max); 
 		}
 	
@@ -128,8 +138,8 @@ public:
 		return x + y*this->width_;
 	}
 
-	PosIndex chooseNextPos(PosIndex index) {
-		const int window = 3;
+	PosIndex chooseNextPos(PosIndex index, int skip) {
+		int window = 3*skip;
 		vector<int> cands;
 		vector<int> cands_all;
 		for(int iy=-window+index.y;iy<=index.y+window;iy++){
@@ -168,6 +178,7 @@ public:
 		return ans;
 	}
 
+	/*
 	void sampling(unsigned int num, vector<int> *sample)
 	{
 		uint64_t sum = reduce(begin(this->data_), end(this->data_));
@@ -189,11 +200,15 @@ public:
 			sample->push_back(j);
 			continue;
 		}
-	}
+	}*/
 
-	void samplingXY(unsigned int num, vector<PosIndex> *sample)
+	bool samplingXY(unsigned int num, vector<PosIndex> *sample)
 	{
 		uint64_t sum = reduce(begin(this->data_), end(this->data_));
+		if (sum == 0) {
+			return false;
+		}
+
 		double step = (double)sum/num;
 		double initial_shift = step*uniform_rand();
 		uint64_t accum = this->data_[0];
@@ -214,6 +229,8 @@ public:
 			sample->push_back({x, y});
 			continue;
 		}
+
+		return true;
 	}
 
 	int xyToValue(int x, int y) {
@@ -268,8 +285,9 @@ public:
 		return ans;
 	}
 
-	static void sampling(vector<Motion> *sample) {
-		const int max_speed = 10;
+	/*
+	static void sampling(vector<Motion> *sample, int skip) {
+		const int max_speed = 3*skip;
 
 		for(int ix=-max_speed; ix<=max_speed; ix++){
 			for(int iy=-max_speed; iy<=max_speed; iy++){
@@ -281,15 +299,16 @@ public:
 			}
 		}
 	}
+	*/
 
 	void print(void){
 		cout << dx_ << " " << dy_ << " " << weight_ << endl;
 	}
 };
 
-void one_step(Map &map, vector<Trajectory> &particles) {
+void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 	for(auto &p : particles){
-		PosIndex after = map.chooseNextPos(p.indexes.back());
+		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
 
 		if (after.x >= 0)
 			p.indexes.push_back(after);
@@ -298,8 +317,10 @@ void one_step(Map &map, vector<Trajectory> &particles) {
 
 int main(int argc, char *argv[])
 {
-	ifstream fixed(argv[1]);
-	ifstream origin(argv[2]);
+	int target_time = atoi(argv[1]);
+	int skip = atoi(argv[2]);
+	ifstream fixed(argv[3]);
+	ifstream origin(argv[4]);
 	if (not fixed or not origin) {
 		cerr << "Invalid files" << endl;
 		return 1;
@@ -312,7 +333,10 @@ int main(int argc, char *argv[])
 	}
 	map_origin.removeFixedObstacle(&map_fixed);
 	vector<PosIndex> particles;
-	map_origin.samplingXY(100, &particles);
+	if (not map_origin.samplingXY(100, &particles)) {
+		cerr << "No obstacle" << endl;
+		return 1;
+	}
 
 	vector<Trajectory> trajs;
 	for(auto &p: particles){
@@ -321,14 +345,14 @@ int main(int argc, char *argv[])
 		trajs.push_back(tmp);
 	}
 
-	for(int i=3;i<argc;i++) {
+	for(int i=5;i<argc;i++) {
 		ifstream ifs(argv[i]);
         	Map map_update;
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
 
 		vector<int> new_partciles;
-		one_step(map_update, trajs);
+		one_step(map_update, trajs, skip);
 	}	
 
 	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
@@ -345,8 +369,8 @@ int main(int argc, char *argv[])
 	       double last_x = last->x + uniform_rand() - 0.5;
 	       double last_y = last->y + uniform_rand() - 0.5;
 
-	       int dx = (int)((last_x - org_x)*5/4);
-	       int dy = (int)((last_y - org_y)*5/4);
+	       int dx = (int)((last_x - org_x)*target_time/(4*skip));
+	       int dy = (int)((last_y - org_y)*target_time/(4*skip));
 
 	       int new_x = last->x + dx;
 	       int new_y = last->y + dy;
@@ -355,8 +379,9 @@ int main(int argc, char *argv[])
 	       if(index < 0)
 		       continue;
 
-	       ans.data_[index] = 255;
+	       ans.data_[index] += 1;
 	}
+	ans.normalize();
 	ans.print();
 
 	return 0;
