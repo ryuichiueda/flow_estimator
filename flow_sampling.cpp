@@ -362,7 +362,7 @@ int main(int argc, char *argv[])
 	       PosIndex *org = &t.indexes[0];
 	       PosIndex *last = &t.indexes.back();
 
-		for(double time=3.0; time<10.0; time+=0.2) {
+		for(double time=2.0; time<10.0; time+=0.2) {
 	       double org_x = org->x + uniform_rand() - 0.5;
 	       double org_y = org->y + uniform_rand() - 0.5;
 	       double last_x = last->x + uniform_rand() - 0.5;
