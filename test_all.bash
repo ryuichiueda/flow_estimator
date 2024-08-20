@@ -7,8 +7,8 @@ mkdir -p ans
 dir=./2024_07_30-15_39_42
 tmp=/tmp/$$
 fix=$dir/fixed.pgm
-after=10
-skip=1
+after=0
+skip=2
 
 ls $dir/??????????.?????????.pgm |
 sort                                    |

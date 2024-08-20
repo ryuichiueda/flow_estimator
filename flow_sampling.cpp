@@ -358,19 +358,20 @@ int main(int argc, char *argv[])
 	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
 
 	for(auto &t: trajs) {
-	//       t.print();	
-
 	       int len = t.indexes.size();
 	       PosIndex *org = &t.indexes[0];
 	       PosIndex *last = &t.indexes.back();
 
+		for(double time=3.0; time<10.0; time+=0.2) {
 	       double org_x = org->x + uniform_rand() - 0.5;
 	       double org_y = org->y + uniform_rand() - 0.5;
 	       double last_x = last->x + uniform_rand() - 0.5;
 	       double last_y = last->y + uniform_rand() - 0.5;
 
-	       int dx = (int)((last_x - org_x)*target_time/(4*skip));
-	       int dy = (int)((last_y - org_y)*target_time/(4*skip));
+	       //int dx = (int)((last_x - org_x)*target_time/(4*skip));
+	       //int dy = (int)((last_y - org_y)*target_time/(4*skip));
+	       int dx = (int)((last_x - org_x)*10*time/(4*skip));
+	       int dy = (int)((last_y - org_y)*10*time/(4*skip));
 
 	       int new_x = last->x + dx;
 	       int new_y = last->y + dy;
@@ -380,6 +381,7 @@ int main(int argc, char *argv[])
 		       continue;
 
 	       ans.data_[index] += 1;
+		}
 	}
 	ans.normalize();
 	ans.print();
