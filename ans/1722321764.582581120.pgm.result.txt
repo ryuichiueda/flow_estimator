@@ -1,2 +1,2 @@
-estimated position num: 2096
-error (manhattan distance): 6 5 6 5 4 1 0 1 1 1 0 
+estimated position num: 0
+error (manhattan distance): 

@@ -136,6 +136,14 @@ public:
 		vector<int> distance;
 		int estimated_pos_num = 0;
 		for(int i=0; i<this->data_.size(); i++){
+			if(this->data_[i] > 0 && ref->data_[i] == 0 ){
+				int v = 255 - this->data_[i]; 
+				cout << v << " " << v << " " << v << " ";
+			}else if(ref->data_[i] == 255 )
+				cout << "255 0 0 ";
+			else
+				cout << "255 255 255 ";
+			/*
 			if (ref->data_[i] == 255) {
 				distance.push_back( distance_to_nearest(i, 10) );
 			}
@@ -151,6 +159,7 @@ public:
 				cout << "0 0 255 ";
 			else
 				cout << "127 127 127 ";
+				*/
 		}
 		cout << endl;
 
