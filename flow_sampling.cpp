@@ -138,18 +138,15 @@ public:
 		return x + y*this->width_;
 	}
 
-	PosIndex chooseNextPos(PosIndex index, int skip) {
-		int window = 3*skip;
+	PosIndex chooseNextPos(PosIndex index, PosIndex shift, int window) {
 		vector<int> cands;
-		vector<int> cands_all;
-		for(int iy=-window+index.y;iy<=index.y+window;iy++){
-			for(int ix=-window+index.x;ix<=index.x+window;ix++){
+		for(int iy=-window+index.y+shift.y;iy<=index.y+window+shift.y;iy++){
+			for(int ix=-window+index.x+shift.x;ix<=index.x+window+shift.x;ix++){
 				int i = xyToIndex(ix, iy);
 
 				if(i < 0)
 					continue;
 				
-				cands_all.push_back(i);
 				if(this->data_[i] > 0)
 					cands.push_back(i);
 			}
@@ -308,7 +305,15 @@ public:
 
 void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 	for(auto &p : particles){
-		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
+		int window = 3*skip;
+		PosIndex shift = {0, 0};
+		if(p.indexes.size() >= 2){
+			int last = p.indexes.size() - 1;
+			shift.x = p.indexes[last].x - p.indexes[last-1].x;
+			shift.y = p.indexes[last].y - p.indexes[last-1].y;
+			window = 2*skip;
+		}
+		PosIndex after = map.chooseNextPos(p.indexes.back(), shift, window);
 
 		if (after.x >= 0)
 			p.indexes.push_back(after);
