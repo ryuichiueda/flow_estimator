@@ -1,0 +1,2 @@
+estimated position num: 1167
+error (manhattan distance): 1 1 0 0 1 0 0 0 1 11 11 11 11 11 11 11 
