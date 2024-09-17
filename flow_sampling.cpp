@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <climits>
 #include <cmath>
+#include <sys/time.h>
 #include <numeric>
 #include <random>
+//#include <chrono>
 
 using namespace std;
 
@@ -325,12 +327,16 @@ int main(int argc, char *argv[])
 		cerr << "Invalid files" << endl;
 		return 1;
 	}
-        Map map_fixed, map_origin;
+	Map map_fixed, map_origin;
 	if ( not map_fixed.load_from_pgm(&fixed) 
 	  or not map_origin.load_from_pgm(&origin) ){
 		cerr << "Cannot load image" << endl;
 		return 1;
 	}
+
+	timespec start;
+	clock_gettime(CLOCK_REALTIME, &start);
+
 	map_origin.removeFixedObstacle(&map_fixed);
 	vector<PosIndex> particles;
 	if (not map_origin.samplingXY(100, &particles)) {
@@ -347,7 +353,7 @@ int main(int argc, char *argv[])
 
 	for(int i=5;i<argc;i++) {
 		ifstream ifs(argv[i]);
-        	Map map_update;
+	 	Map map_update;
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
 
@@ -358,33 +364,37 @@ int main(int argc, char *argv[])
 	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
 
 	for(auto &t: trajs) {
-	       int len = t.indexes.size();
-	       PosIndex *org = &t.indexes[0];
-	       PosIndex *last = &t.indexes.back();
+		int len = t.indexes.size();
+		PosIndex *org = &t.indexes[0];
+		PosIndex *last = &t.indexes.back();
 
 		for(double time=2.0; time<10.0; time+=0.2) {
-	       double org_x = org->x + uniform_rand() - 0.5;
-	       double org_y = org->y + uniform_rand() - 0.5;
-	       double last_x = last->x + uniform_rand() - 0.5;
-	       double last_y = last->y + uniform_rand() - 0.5;
-
-	       //int dx = (int)((last_x - org_x)*target_time/(4*skip));
-	       //int dy = (int)((last_y - org_y)*target_time/(4*skip));
-	       int dx = (int)((last_x - org_x)*10*time/(4*skip));
-	       int dy = (int)((last_y - org_y)*10*time/(4*skip));
-
-	       int new_x = last->x + dx;
-	       int new_y = last->y + dy;
-
-	       int index = ans.xyToIndex(new_x, new_y);
-	       if(index < 0)
-		       continue;
-
-	       ans.data_[index] += 1;
+			double org_x = org->x + uniform_rand() - 0.5;
+			double org_y = org->y + uniform_rand() - 0.5;
+			double last_x = last->x + uniform_rand() - 0.5;
+			double last_y = last->y + uniform_rand() - 0.5;
+	
+			int dx = (int)((last_x - org_x)*10*time/(4*skip));
+			int dy = (int)((last_y - org_y)*10*time/(4*skip));
+	
+			int new_x = last->x + dx;
+			int new_y = last->y + dy;
+	
+			int index = ans.xyToIndex(new_x, new_y);
+			if(index < 0)
+				continue;
+	
+			ans.data_[index] += 1;
 		}
 	}
 	ans.normalize();
+
+	timespec end;
+	clock_gettime(CLOCK_REALTIME, &end);
+
 	ans.print();
+
+	std::cerr << "TIME: " << end.tv_nsec - start.tv_nsec << std::endl;
 
 	return 0;
 }

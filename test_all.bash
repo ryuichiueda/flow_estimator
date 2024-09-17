@@ -1,10 +1,10 @@
-#!/bin/bash -xv
+#!/bin/sush -xv
 
 g++ -O2 -std=c++17 evaluation.cpp -o evaluation
 g++ -O2 -std=c++17 ./flow_sampling.cpp
 mkdir -p ans
 
-dir=./2024_07_30-15_42_37
+dir=./2024_07_30-15_39_42
 tmp=/tmp/$$
 fix=$dir/fixed.pgm
 after=0
