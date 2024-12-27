@@ -308,10 +308,28 @@ public:
 
 void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 	for(auto &p : particles){
+		if ( p.indexes.back().x == -1 ) {
+			continue;
+		}
 		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
+		p.indexes.push_back(after);
 
-		if (after.x >= 0)
-			p.indexes.push_back(after);
+	}
+
+	Trajectory *prev = NULL;
+	int j = 0;
+	for(int i=0;i<particles.size();i++) {
+		if ( particles[i].back().x != -1 ) {
+			prev = &particles[i];
+			j++;
+			break;
+		}
+		j = i;
+	}
+
+	for(int i=j;i<particles.size();i++) {
+		cerr << p.indexes[0].x << " " << p.indexes[0].y << " → " << after.x << " " << after.y << endl;
+
 	}
 }
 
