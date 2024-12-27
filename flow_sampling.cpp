@@ -318,26 +318,93 @@ void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 
 	Trajectory *prev = NULL;
 	int j = 0;
+	int k = 0;
 	for(int i=0;i<particles.size();i++) {
-		if ( particles[i].back().x != -1 ) {
+		if ( particles[i].indexes.back().x != -1 ) {
 			prev = &particles[i];
 			j++;
+			k = particles[i].indexes.size();
 			break;
 		}
 		j = i;
 	}
 
 	for(int i=j;i<particles.size();i++) {
-		cerr << p.indexes[0].x << " " << p.indexes[0].y << " → " << after.x << " " << after.y << endl;
+		if( particles[i].indexes.back().x == -1 ){
+			continue;
+		}
+
+		int ax = prev->indexes[k-2].x;
+		int ay = prev->indexes[k-2].y;
+		int bx = prev->indexes.back().x;
+		int by = prev->indexes.back().y;
+
+		int cx = particles[i].indexes[k-2].x;
+		int cy = particles[i].indexes[k-2].y;
+		int dx = particles[i].indexes.back().x;
+		int dy = particles[i].indexes.back().y;
+
+		//abを基準に外積で判定
+		int ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
+		int ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
+
+		if( ab_ac*ab_ad >= 0 ) {
+			continue;
+		}
+
+		int cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
+		int cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
+
+		if( cd_ca*cd_cb >= 0 ) {
+			continue;
+		}
+
+		cerr << "before"
+			<< prev->indexes[k-2].x << " " << prev->indexes[k-2].y 
+			<< " → " 
+			<< prev->indexes[k-1].x << " " << prev->indexes[k-1].y 
+			<< " & "
+			<< particles[i].indexes[k-2].x << " " << particles[i].indexes[k-2].y 
+			<< " → "
+			<< particles[i].indexes[k-1].x << " " << particles[i].indexes[k-1].y 
+			<< endl;
+
+		PosIndex p_prev = prev->indexes.back();
+		PosIndex p_i = particles[i].indexes.back();
+
+		/*
+		cerr << prev->indexes[0].x << " " << prev->indexes[0].y 
+			<< " → " << p_prev.x << " " << p_prev.y 
+			<< "⇔"
+			<< particles[i].indexes[0].x << " " << particles[i].indexes[0].y 
+			<< " → " << p_i.x << " " << p_i.y 
+			<< endl;
+			*/
+
+		prev->indexes.pop_back();
+		particles[i].indexes.pop_back();
+
+		prev->indexes.push_back(p_i);
+		particles[i].indexes.push_back(p_prev);
+
+		cerr << "after"
+			<< prev->indexes[k-2].x << " " << prev->indexes[k-2].y 
+			<< " → " 
+			<< prev->indexes[k-1].x << " " << prev->indexes[k-1].y 
+			<< " & "
+			<< particles[i].indexes[k-2].x << " " << particles[i].indexes[k-2].y 
+			<< " → "
+			<< particles[i].indexes[k-1].x << " " << particles[i].indexes[k-1].y 
+			<< endl;
+
+		prev = &particles[i];
 
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	int target_time = atoi(argv[1]);
-	int skip = atoi(argv[2]);
-	ifstream fixed(argv[3]);
+	int target_time = atoi(argv[1]); int skip = atoi(argv[2]); ifstream fixed(argv[3]);
 	ifstream origin(argv[4]);
 	if (not fixed or not origin) {
 		cerr << "Invalid files" << endl;
