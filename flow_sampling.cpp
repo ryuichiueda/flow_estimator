@@ -24,8 +24,8 @@ struct Pos {
 };
 
 struct PosIndex {
-	int x;
-	int y;
+	double x;
+	double y;
 };
 
 class Trajectory {
@@ -104,12 +104,6 @@ public:
 			return;
 		
 		for(int i=0; i<this->data_.size(); i++){
-			/*
-			if(data_[i] < 3){
-				data_[i] = 0;
-				continue; 
-			}*/
-
 			data_[i] = (int)(255 * data_[i] / max); 
 		}
 	
@@ -142,8 +136,12 @@ public:
 		int window = 3*skip;
 		vector<int> cands;
 		vector<int> cands_all;
-		for(int iy=-window+index.y;iy<=index.y+window;iy++){
-			for(int ix=-window+index.x;ix<=index.x+window;ix++){
+
+		int index_x = (int)index.x;
+		int index_y = (int)index.y;
+
+		for(int iy=-window+index_y;iy<=index_y+window;iy++){
+			for(int ix=-window+index_x;ix<=index_x+window;ix++){
 				int i = xyToIndex(ix, iy);
 
 				if(i < 0)
@@ -158,13 +156,16 @@ public:
 		int chosen;
 		vector<int> result;
 		if(cands.size() == 0){
-			return { -1, -1};
+			return { -1.0, -1.0};
 		}else{
 			int pos = (int)(uniform_rand()*cands.size());
 			chosen = cands[pos];
 		}
 
-		return { (int)(chosen % this->width_), (int)(chosen / this->width_)};
+		return {
+			(int)(chosen % this->width_) + uniform_rand(),
+			(int)(chosen / this->width_) + uniform_rand(),
+		};
 	}
 
 	Pos toRandomXyPos(int pos_on_data) {
@@ -177,30 +178,6 @@ public:
 	
 		return ans;
 	}
-
-	/*
-	void sampling(unsigned int num, vector<int> *sample)
-	{
-		uint64_t sum = reduce(begin(this->data_), end(this->data_));
-		double step = (double)sum/num;
-		double initial_shift = step*uniform_rand();
-		uint64_t accum = this->data_[0];
-		int j = 0;
-		for(int i=0;i<num;i++){
-			uint64_t tick = (uint64_t)(i*step + initial_shift);
-			while(tick >= accum) {
-				j += 1;
-				if (j >= this->data_.size()) {
-					cerr << "Overflow at sampling" << endl;
-					exit(1);
-				}
-				accum += this->data_[j];
-			}
-			//sample->push_back({j, toRandomXyPos(j)});
-			sample->push_back(j);
-			continue;
-		}
-	}*/
 
 	bool samplingXY(unsigned int num, vector<PosIndex> *sample)
 	{
@@ -224,8 +201,8 @@ public:
 				accum += this->data_[j];
 			}
 
-			int x = j  % this->width_;
-			int y = j  / this->width_;
+			double x = j  % this->width_ + uniform_rand();
+			double y = j  / this->width_ + uniform_rand();
 			sample->push_back({x, y});
 			continue;
 		}
@@ -297,7 +274,7 @@ int remove_cross(vector<Trajectory> &particles) {
 	int j = 0;
 	int k = 0;
 	for(int i=0;i<particles.size();i++) {
-		if ( particles[i].indexes.back().x != -1 ) {
+		if ( particles[i].indexes.back().x > -0.01 ) {
 			prev = &particles[i];
 			j++;
 			k = particles[i].indexes.size();
@@ -307,32 +284,32 @@ int remove_cross(vector<Trajectory> &particles) {
 	}
 
 	for(int i=j;i<particles.size();i++) {
-		if( particles[i].indexes.back().x == -1 ){
+		if( particles[i].indexes.back().x < -0.01 ){
 			continue;
 		}
 
-		int ax = prev->indexes[k-2].x;
-		int ay = prev->indexes[k-2].y;
-		int bx = prev->indexes.back().x;
-		int by = prev->indexes.back().y;
+		double ax = prev->indexes[0].x;
+		double ay = prev->indexes[0].y;
+		double bx = prev->indexes.back().x;
+		double by = prev->indexes.back().y;
 
-		int cx = particles[i].indexes[k-2].x;
-		int cy = particles[i].indexes[k-2].y;
-		int dx = particles[i].indexes.back().x;
-		int dy = particles[i].indexes.back().y;
+		double cx = particles[i].indexes[0].x;
+		double cy = particles[i].indexes[0].y;
+		double dx = particles[i].indexes.back().x;
+		double dy = particles[i].indexes.back().y;
 
 		//abを基準に外積で判定
-		int ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
-		int ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
+		double ab_ac = (bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
+		double ab_ad = (bx-ax)*(dy-ay)-(dx-ax)*(by-ay);
 
-		if( ab_ac*ab_ad >= 0 ) {
+		if( ab_ac*ab_ad > 0.0 ) {
 			continue;
 		}
 
-		int cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
-		int cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
+		double cd_ca = (dx-cx)*(ay-cy)-(ax-cx)*(dy-cy);
+		double cd_cb = (dx-cx)*(by-cy)-(bx-cx)*(dy-cy);
 
-		if( cd_ca*cd_cb >= 0 ) {
+		if( cd_ca*cd_cb > 0.0 ) {
 			continue;
 		}
 
@@ -348,6 +325,10 @@ int remove_cross(vector<Trajectory> &particles) {
 
 		PosIndex p_prev = prev->indexes.back();
 		PosIndex p_i = particles[i].indexes.back();
+
+		if(p_prev.x == p_i.x && p_prev.y == p_i.y) {
+			continue;
+		}
 
 		prev->indexes.pop_back();
 		particles[i].indexes.pop_back();
@@ -376,19 +357,19 @@ int remove_cross(vector<Trajectory> &particles) {
 
 void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 	for(auto &p : particles){
-		if ( p.indexes.back().x == -1 ) {
+		if ( p.indexes.back().x < -0.01 ) {
 			continue;
 		}
 		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
 		p.indexes.push_back(after);
 
 	}
-
-	/*
-	int c = 100;
-	while(c != 0)
-		c = remove_cross(particles);
-		*/
+/*
+	int counter = 100;
+	while (counter > 0 ){
+		counter = remove_cross(particles);
+	}
+	*/
 }
 
 int main(int argc, char *argv[])
@@ -425,9 +406,14 @@ int main(int argc, char *argv[])
 		map_update.load_from_pgm(&ifs);
 		map_update.removeFixedObstacle(&map_fixed);
 
-		vector<int> new_partciles;
+//		vector<int> new_partciles;
 		one_step(map_update, trajs, skip);
 	}	
+
+	int counter = 100;
+	while (counter > 0 ){
+		counter = remove_cross(particles);
+	}
 
 	Map ans(map_origin.width_, map_origin.height_, map_origin.depth_);
 
