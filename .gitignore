@@ -1,5 +1,6 @@
 ./ans/*
 ./log.txt
+./-
 
 # Prerequisites
 *.d
