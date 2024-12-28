@@ -285,37 +285,14 @@ public:
 		return ans;
 	}
 
-	/*
-	static void sampling(vector<Motion> *sample, int skip) {
-		const int max_speed = 3*skip;
-
-		for(int ix=-max_speed; ix<=max_speed; ix++){
-			for(int iy=-max_speed; iy<=max_speed; iy++){
-				double dx = ix + uniform_rand() - 0.5;
-				double dy = iy + uniform_rand() - 0.5;
-				//double w = 1.0/sqrt(dx*dx + dy*dy + 1.0);
-				double w = 1.0;///sqrt(dx*dx + dy*dy + 1.0);
-				sample->push_back({dx, dy, w});
-			}
-		}
-	}
-	*/
-
 	void print(void){
 		cout << dx_ << " " << dy_ << " " << weight_ << endl;
 	}
 };
 
-void one_step(Map &map, vector<Trajectory> &particles, int skip) {
-	for(auto &p : particles){
-		if ( p.indexes.back().x == -1 ) {
-			continue;
-		}
-		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
-		p.indexes.push_back(after);
 
-	}
-
+int remove_cross(vector<Trajectory> &particles) {
+	int counter = 0;
 	Trajectory *prev = NULL;
 	int j = 0;
 	int k = 0;
@@ -372,15 +349,6 @@ void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 		PosIndex p_prev = prev->indexes.back();
 		PosIndex p_i = particles[i].indexes.back();
 
-		/*
-		cerr << prev->indexes[0].x << " " << prev->indexes[0].y 
-			<< " → " << p_prev.x << " " << p_prev.y 
-			<< "⇔"
-			<< particles[i].indexes[0].x << " " << particles[i].indexes[0].y 
-			<< " → " << p_i.x << " " << p_i.y 
-			<< endl;
-			*/
-
 		prev->indexes.pop_back();
 		particles[i].indexes.pop_back();
 
@@ -399,7 +367,28 @@ void one_step(Map &map, vector<Trajectory> &particles, int skip) {
 
 		prev = &particles[i];
 
+		counter++;
 	}
+
+	cerr << "COUNTER: " << counter << endl;
+	return counter;
+}
+
+void one_step(Map &map, vector<Trajectory> &particles, int skip) {
+	for(auto &p : particles){
+		if ( p.indexes.back().x == -1 ) {
+			continue;
+		}
+		PosIndex after = map.chooseNextPos(p.indexes.back(), skip);
+		p.indexes.push_back(after);
+
+	}
+
+	/*
+	int c = 100;
+	while(c != 0)
+		c = remove_cross(particles);
+		*/
 }
 
 int main(int argc, char *argv[])
@@ -453,8 +442,6 @@ int main(int argc, char *argv[])
 	       double last_x = last->x + uniform_rand() - 0.5;
 	       double last_y = last->y + uniform_rand() - 0.5;
 
-	       //int dx = (int)((last_x - org_x)*target_time/(4*skip));
-	       //int dy = (int)((last_y - org_y)*target_time/(4*skip));
 	       int dx = (int)((last_x - org_x)*10*time/(4*skip));
 	       int dy = (int)((last_y - org_y)*10*time/(4*skip));
 
